@@ -6,6 +6,9 @@
 build/
 DerivedData/
 
+.idea/*
+CMakeLists.txt
+
 ## Various settings
 *.pbxuser
 !default.pbxuser
@@ -54,3 +57,4 @@ xcuserdata/
 
 # Debug files
 *.dSYM/
+
