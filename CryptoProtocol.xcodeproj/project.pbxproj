@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5892974C1C9181C80046310D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5892974B1C9181C80046310D /* main.c */; };
+		6B109E191C91869B007BD970 /* crypto.c in Sources */ = {isa = PBXBuildFile; fileRef = 6B109E171C91869B007BD970 /* crypto.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,8 @@
 /* Begin PBXFileReference section */
 		589297481C9181C80046310D /* CryptoProtocol */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CryptoProtocol; sourceTree = BUILT_PRODUCTS_DIR; };
 		5892974B1C9181C80046310D /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		6B109E171C91869B007BD970 /* crypto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crypto.c; sourceTree = "<group>"; };
+		6B109E181C91869B007BD970 /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,9 +60,35 @@
 		5892974A1C9181C80046310D /* CryptoProtocol */ = {
 			isa = PBXGroup;
 			children = (
+				6B109E141C91864C007BD970 /* Client */,
+				6B109E151C91865A007BD970 /* Server */,
 				5892974B1C9181C80046310D /* main.c */,
+				6B109E161C91867C007BD970 /* Crypto */,
 			);
 			path = CryptoProtocol;
+			sourceTree = "<group>";
+		};
+		6B109E141C91864C007BD970 /* Client */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Client;
+			sourceTree = "<group>";
+		};
+		6B109E151C91865A007BD970 /* Server */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Server;
+			sourceTree = "<group>";
+		};
+		6B109E161C91867C007BD970 /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				6B109E171C91869B007BD970 /* crypto.c */,
+				6B109E181C91869B007BD970 /* crypto.h */,
+			);
+			name = Crypto;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -118,6 +147,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6B109E191C91869B007BD970 /* crypto.c in Sources */,
 				5892974C1C9181C80046310D /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -237,6 +267,7 @@
 				589297511C9181C80046310D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
