@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		5892974C1C9181C80046310D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5892974B1C9181C80046310D /* main.c */; };
 		6B109E191C91869B007BD970 /* crypto.c in Sources */ = {isa = PBXBuildFile; fileRef = 6B109E171C91869B007BD970 /* crypto.c */; };
+		6B109E1C1C91879D007BD970 /* client.c in Sources */ = {isa = PBXBuildFile; fileRef = 6B109E1A1C91879D007BD970 /* client.c */; };
+		6B109E1F1C9187AE007BD970 /* server.c in Sources */ = {isa = PBXBuildFile; fileRef = 6B109E1D1C9187AE007BD970 /* server.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +30,10 @@
 		5892974B1C9181C80046310D /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		6B109E171C91869B007BD970 /* crypto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crypto.c; sourceTree = "<group>"; };
 		6B109E181C91869B007BD970 /* crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypto.h; sourceTree = "<group>"; };
+		6B109E1A1C91879D007BD970 /* client.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = client.c; sourceTree = "<group>"; };
+		6B109E1B1C91879D007BD970 /* client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = client.h; sourceTree = "<group>"; };
+		6B109E1D1C9187AE007BD970 /* server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = server.c; sourceTree = "<group>"; };
+		6B109E1E1C9187AE007BD970 /* server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = server.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +77,8 @@
 		6B109E141C91864C007BD970 /* Client */ = {
 			isa = PBXGroup;
 			children = (
+				6B109E1A1C91879D007BD970 /* client.c */,
+				6B109E1B1C91879D007BD970 /* client.h */,
 			);
 			name = Client;
 			sourceTree = "<group>";
@@ -78,6 +86,8 @@
 		6B109E151C91865A007BD970 /* Server */ = {
 			isa = PBXGroup;
 			children = (
+				6B109E1D1C9187AE007BD970 /* server.c */,
+				6B109E1E1C9187AE007BD970 /* server.h */,
 			);
 			name = Server;
 			sourceTree = "<group>";
@@ -147,8 +157,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6B109E1F1C9187AE007BD970 /* server.c in Sources */,
 				6B109E191C91869B007BD970 /* crypto.c in Sources */,
 				5892974C1C9181C80046310D /* main.c in Sources */,
+				6B109E1C1C91879D007BD970 /* client.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

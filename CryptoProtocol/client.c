@@ -1,11 +1,9 @@
 //
-//  crypto.c
+//  client.c
 //  CryptoProtocol
 //
 //  Created by José Tarsitano on 10/03/2016.
 //  Copyright © 2016 Alexandre Cetto. All rights reserved.
 //
 
-#include "crypto.h"
-
-void sign(char* s);
+#include "client.h"

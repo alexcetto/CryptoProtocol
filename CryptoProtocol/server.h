@@ -1,11 +1,14 @@
 //
-//  crypto.c
+//  server.h
 //  CryptoProtocol
 //
 //  Created by José Tarsitano on 10/03/2016.
 //  Copyright © 2016 Alexandre Cetto. All rights reserved.
 //
 
-#include "crypto.h"
+#ifndef server_h
+#define server_h
 
-void sign(char* s);
+#include <stdio.h>
+
+#endif /* server_h */
