@@ -16,6 +16,5 @@ int main(int argc, const char * argv[]) {
     char* cipher = encryptAES("KALASH");
     char* plaintext = decryptAES(cipher);
 
-
     return 0;
 }
