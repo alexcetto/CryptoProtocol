@@ -10,166 +10,73 @@
  * usage: tcpserver <port>
  */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#define BUFSIZE 1024
-
-#if 0
 /*
- * Structs exported from in.h
- */
+    C socket server example
+*/
 
-/* Internet address */
-struct in_addr {
-  unsigned int s_addr;
-};
+#include<stdio.h>
+#include<string.h>    //strlen
+#include<sys/socket.h>
+#include<arpa/inet.h> //inet_addr
+#include<unistd.h>    //write
 
-/* Internet style socket address */
-struct sockaddr_in  {
-  unsigned short int sin_family; /* Address family */
-  unsigned short int sin_port;   /* Port number */
-  struct in_addr sin_addr;	 /* IP address */
-  unsigned char sin_zero[...];   /* Pad to size of 'struct sockaddr' */
-};
+#define MSG_SIZE 1024
 
-/*
- * Struct exported from netdb.h
- */
+int main(int argc, char *argv[]) {
+    int socket_desc, client_sock, c, read_size;
+    struct sockaddr_in server, client;
+    char client_message[MSG_SIZE];
 
-/* Domain name service (DNS) host entry */
-struct hostent {
-  char    *h_name;        /* official name of host */
-  char    **h_aliases;    /* alias list */
-  int     h_addrtype;     /* host address type */
-  int     h_length;       /* length of address */
-  char    **h_addr_list;  /* list of addresses */
-}
-#endif
-
-/*
- * error - wrapper for perror
- */
-void error(char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-int main(int argc, char **argv) {
-    int parentfd; /* parent socket */
-    int childfd; /* child socket */
-    int portno; /* port to listen on */
-    int clientlen; /* byte size of client's address */
-    struct sockaddr_in serveraddr; /* server's addr */
-    struct sockaddr_in clientaddr; /* client addr */
-    struct hostent *hostp; /* client host info */
-    char buf[BUFSIZE]; /* message buffer */
-    char *hostaddrp; /* dotted decimal host addr string */
-    int optval; /* flag value for setsockopt */
-    int n; /* message byte size */
-
-    /*
-     * check command line arguments
-     */
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s <port>\n", argv[0]);
-        exit(1);
+    //Create socket
+    socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_desc == -1) {
+        printf("Could not create socket");
     }
-    portno = atoi(argv[1]);
+    puts("Socket created");
 
-    /*
-     * socket: create the parent socket
-     */
-    parentfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (parentfd < 0)
-        error("ERROR opening socket");
+    //Prepare the sockaddr_in structure
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(8888);
 
-    /* setsockopt: Handy debugging trick that lets
-     * us rerun the server immediately after we kill it;
-     * otherwise we have to wait about 20 secs.
-     * Eliminates "ERROR on binding: Address already in use" error.
-     */
-    optval = 1;
-    setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR,
-               (const void *)&optval , sizeof(int));
+    //Bind
+    if (bind(socket_desc, (struct sockaddr *) &server, sizeof(server)) < 0) {
+        //print the error message
+        perror("bind failed. Error");
+        return 1;
+    }
+    puts("bind done");
 
-    /*
-     * build the server's Internet address
-     */
-    bzero((char *) &serveraddr, sizeof(serveraddr));
+    //Listen
+    listen(socket_desc, 3);
 
-    /* this is an Internet address */
-    serveraddr.sin_family = AF_INET;
+    //Accept and incoming connection
+    puts("Waiting for incoming connections...");
+    c = sizeof(struct sockaddr_in);
 
-    /* let the system figure out our IP address */
-    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    //accept connection from an incoming client
+    client_sock = accept(socket_desc, (struct sockaddr *) &client, (socklen_t *) &c);
+    if (client_sock < 0) {
+        perror("accept failed");
+        return 1;
+    }
+    puts("Connection accepted");
 
-    /* this is the port we will listen on */
-    serveraddr.sin_port = htons((unsigned short)portno);
-
-    /*
-     * bind: associate the parent socket with a port
-     */
-    if (bind(parentfd, (struct sockaddr *) &serveraddr,
-             sizeof(serveraddr)) < 0)
-        error("ERROR on binding");
-
-    /*
-     * listen: make this socket ready to accept connection requests
-     */
-    if (listen(parentfd, 5) < 0) /* allow 5 requests to queue up */
-        error("ERROR on listen");
-
-    /*
-     * main loop: wait for a connection request, echo input line,
-     * then close connection.
-     */
-    clientlen = sizeof(clientaddr);
+    //Receive a message from client
     while (1) {
-
-        /*
-         * accept: wait for a connection request
-         */
-        childfd = accept(parentfd, (struct sockaddr *) &clientaddr, &clientlen);
-        if (childfd < 0)
-            error("ERROR on accept");
-
-        /*
-         * gethostbyaddr: determine who sent the message
-         */
-        hostp = gethostbyaddr((const char *)&clientaddr.sin_addr.s_addr,
-                              sizeof(clientaddr.sin_addr.s_addr), AF_INET);
-        if (hostp == NULL)
-            error("ERROR on gethostbyaddr");
-        hostaddrp = inet_ntoa(clientaddr.sin_addr);
-        if (hostaddrp == NULL)
-            error("ERROR on inet_ntoa\n");
-        printf("server established connection with %s (%s)\n",
-               hostp->h_name, hostaddrp);
-
-        /*
-         * read: read input string from the client
-         */
-        bzero(buf, BUFSIZE);
-        n = read(childfd, buf, BUFSIZE);
-        if (n < 0)
-            error("ERROR reading from socket");
-        printf("server received %d bytes: %s", n, buf);
-
-        /*
-         * write: echo the input string back to the client
-         */
-        n = write(childfd, buf, strlen(buf));
-        if (n < 0)
-            error("ERROR writing to socket");
-
-        close(childfd);
+        bzero(client_message, MSG_SIZE);
+        read_size = recv(client_sock, client_message, MSG_SIZE, 0);
+        //Send the message back to client
+        write(client_sock, client_message, read_size);
     }
+
+    if (read_size == 0) {
+        puts("Client disconnected");
+        fflush(stdout);
+    }
+    else if (read_size == -1) {
+        perror("recv failed");
+    }
+
+    return 0;
 }
