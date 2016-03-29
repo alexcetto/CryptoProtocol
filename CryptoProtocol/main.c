@@ -7,9 +7,15 @@
 //
 
 #include <stdio.h>
+#include "crypto/crypto.h"
 
 int main(int argc, const char * argv[]) {
     // insert code here...
     printf("Hello, World!\n");
+
+    char* cipher = encryptAES("KALASH");
+    char* plaintext = decryptAES(cipher);
+
+
     return 0;
 }
