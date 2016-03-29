@@ -35,6 +35,25 @@
 
 #define BUFF_SIZE 1024
 
+/******************************* GENERATION KEY SESSION ********************************/
+/* Passphrase */
+unsigned char passPhrase[AES_BLOCK_SIZE];
+
+/** Creation d'un passphrase.
+ **/
+void setPassPhrase();
+/** Recuperation d'un passphrase.
+ **/
+unsigned char* getPassPhrase();
+/***************************************************************************************/
+
+/******************************* GENERATION KEY SESSION ********************************/
+/**
+ * Generation de la cle de session.
+ */
+void generateSessionKey();
+/***************************************************************************************/
+
 /************************* AES_128_CTR GLOBALS AND STRUCT INIT *************************/
 struct ctr_state {
     unsigned char ivec[AES_BLOCK_SIZE];
@@ -42,12 +61,10 @@ struct ctr_state {
     unsigned char ecount[AES_BLOCK_SIZE];
 } state;
 
-AES_KEY key;
+AES_KEY sessionKey;
 
 /* Vecteur d'initialisation */
 unsigned char iv[AES_BLOCK_SIZE];
-/* Passphrase */
-unsigned char currPassPhrase[AES_BLOCK_SIZE];
 /***************************************************************************************/
 
 /************************** AES_128_CTR PROTOTYPES FUNCTIONS ***************************/
@@ -93,7 +110,6 @@ unsigned char* generateNonce();
 void cryptWithPublicKey();
 void decryptWithPrivateKey();
 void checkSign();
-void generateSessionKey();
 
 
 #endif /* crypto_h */

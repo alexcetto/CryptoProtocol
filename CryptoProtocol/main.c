@@ -10,17 +10,24 @@
 #include "crypto/crypto.h"
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    printf("Hello, World!\n");
+    // Passphrase
+    setPassPhrase();
 
+    // Generation de la cle de session
+    generateSessionKey();
+
+    // Chiffrement
     char* cipher = encryptAES("KALASH");
+    // Dechiffrement
     char* plaintext = decryptAES(cipher);
 
-    unsigned char md[SHA256_DIGEST_LENGTH]; // 32 bytes
+    /* SHA256 */
+    // Hashe
+    unsigned char md[SHA256_DIGEST_LENGTH];
+    // Message a hacher
     char* message = "POULPE";
-    if(!SHA256_hach(message, sizeof(message), md))
-    {
-        // handle error
+    if(!SHA256_hach(message, sizeof(message), md)) {
+        // Traitement des erreurs.
     }
 
     return 0;

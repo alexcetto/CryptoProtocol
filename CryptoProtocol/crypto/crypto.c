@@ -9,7 +9,59 @@
 #include "crypto.h"
 
 /***************************************************************************************/
-/******************************* 1. AES128_CTR FUNCTIONS *******************************/
+/********************************** PASSPHRASE FUNCTION ********************************/
+/***************************************************************************************/
+
+/** Creation d'un passphrase.
+ **/
+void setPassPhrase() {
+    char* newPassPhrase;
+
+    newPassPhrase = getpass("entrer passphrase: ");
+    int lenPassPhrase = (int)strlen(newPassPhrase);
+
+    if (lenPassPhrase < AES_BLOCK_SIZE) {
+        for (int i = lenPassPhrase; i < AES_BLOCK_SIZE+1; i++)
+            newPassPhrase[i] = '0';
+    }
+
+    for (int i = 0; i < AES_BLOCK_SIZE; i++)
+        passPhrase[i] = newPassPhrase[i];
+
+}
+
+/** Recuperation d'un passphrase.
+ **/
+unsigned char* getPassPhrase() {
+    return passPhrase;
+}
+
+/***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
+
+/***************************************************************************************/
+/**************************** SESSION KEY GENERATION FUNCTION **************************/
+/***************************************************************************************/
+
+/**
+ * Generation de la cle de session.
+ */
+void generateSessionKey() {
+    // Initialisation de la cle pour chiffrer.
+    if (AES_set_encrypt_key(passPhrase, 128, &sessionKey) < 0) {
+        fprintf(stderr, "Could not set encryption key.\n");
+        exit(1);
+    }
+}
+
+/***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
+
+
+/***************************************************************************************/
+/********************************* AES128_CTR FUNCTIONS ********************************/
 /***************************************************************************************/
 
 /** Initialisation AES MODE.
@@ -40,16 +92,10 @@ char* encryptAES(char* plaintext) {
         return -1;
     }
     
-    // Initialisation de la cle pour chiffrer.
-    if (AES_set_encrypt_key("lol", 128, &key) < 0) {
-        fprintf(stderr, "Could not set encryption key.\n");
-        exit(1);
-    }
-    
     init_ctr(&state, iv); //Counter call
     
     // Chiffrement..
-    AES_ctr128_encrypt((unsigned char *) plaintext, cipher, AES_BLOCK_SIZE, &key, state.ivec, state.ecount, &state.num);
+    AES_ctr128_encrypt((unsigned char *) plaintext, cipher, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
     printf("%s \n\n", cipher);
 
 
@@ -65,7 +111,7 @@ unsigned char* decryptAES(unsigned char* cipher) {
     init_ctr(&state, iv); //Counter call
 
     // Dechiffrement.
-    AES_ctr128_encrypt(cipher, (unsigned char *) plaintext, AES_BLOCK_SIZE, &key, state.ivec, state.ecount, &state.num);
+    AES_ctr128_encrypt(cipher, (unsigned char *) plaintext, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
     printf("%s \n\n", plaintext);
 
     return plaintext;
@@ -76,7 +122,7 @@ unsigned char* decryptAES(unsigned char* cipher) {
 /***************************************************************************************/
 
 /***************************************************************************************/
-/**************************** 4. HASH WITH SHA 256 FUNCTION ****************************/
+/****************************** HASH WITH SHA 256 FUNCTION *****************************/
 /***************************************************************************************/
 
 /** Hachage d'un fichier avec SHA256.
@@ -130,7 +176,4 @@ unsigned char* generateNonce() {
 void decryptWithPrivateKey();
 
 void checkSign();
-
-void generateSessionKey();
-
 void cryptWithPublicKey();
