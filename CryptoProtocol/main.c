@@ -16,5 +16,12 @@ int main(int argc, const char * argv[]) {
     char* cipher = encryptAES("KALASH");
     char* plaintext = decryptAES(cipher);
 
+    unsigned char md[SHA256_DIGEST_LENGTH]; // 32 bytes
+    char* message = "POULPE";
+    if(!SHA256_hach(message, sizeof(message), md))
+    {
+        // handle error
+    }
+
     return 0;
 }

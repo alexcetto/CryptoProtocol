@@ -42,8 +42,6 @@ struct ctr_state {
     unsigned char ecount[AES_BLOCK_SIZE];
 } state;
 
-FILE *readFile;
-FILE *writeFile;
 AES_KEY key;
 
 /* Vecteur d'initialisation */
@@ -76,15 +74,12 @@ unsigned char* decryptAES(unsigned char* cipher);
 /***************************************************************************************/
 
 /********************* SHA_256_HASH GLOBALS AND PROTOTYPE FUNCTION *********************/
-/* Hache */
-unsigned char md[EVP_MAX_MD_SIZE];
-
 /** Hachage d'un fichier avec SHA256.
  @param [unsigner char*]  md             hache,
  @param [char*]           filename       nom du fichier a hacher.
  @return [int] statut 0 succes, -1 erreur.
  **/
-int SHA256_hach(unsigned char* md, char* filename);
+int SHA256_hach(void* input, unsigned long length, unsigned char* md);
 /***************************************************************************************/
 
 /** Affichage buffer.

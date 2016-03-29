@@ -80,38 +80,24 @@ unsigned char* decryptAES(unsigned char* cipher) {
 /***************************************************************************************/
 
 /** Hachage d'un fichier avec SHA256.
- @param [unsigner char*]  md             hache,
- @param [char*]           filename       nom du fichier a hacher.
+ @param [void*]           input  message a hacher,
+ @param [unsigned long]   length taille du message,
+ @param [unsigned char*]  message hache,
  @return [int] statut 0 succes, -1 erreur.
  **/
-int SHA256_hach(unsigned char* md, char* filename) {
-    EVP_MD_CTX* ctx;
-    const EVP_MD* mdt;
-    unsigned int md_len = 0;
-    
-    OpenSSL_add_all_digests();
-    ctx = EVP_MD_CTX_create();
-    mdt = EVP_get_digestbyname("SHA256");
-    EVP_DigestInit_ex(ctx, mdt, NULL);
-    
-    char buffer[BUFF_SIZE];
-    size_t read;
-    /*while ((read = fread(buffer, 1, BUFF_SIZE, file)) != 0) {
-        EVP_DigestUpdate(ctx, buffer, read);
-        md_len += read;
-        if (read < BUFF_SIZE) {
-            break;
-        }
-    }*/
+int SHA256_hach(void* input, unsigned long length, unsigned char* md) {
+    SHA256_CTX context;
+    if(!SHA256_Init(&context))
+        return -1;
 
-    EVP_DigestFinal_ex(ctx, md, &md_len);
-    
-    printf("hache:       ");
-    printBytes((unsigned char*)md, md_len);
-    
-    EVP_MD_CTX_destroy(ctx);
-    EVP_cleanup();
-    
+    if(!SHA256_Update(&context, (unsigned char*)input, length))
+        return -1;
+
+    if(!SHA256_Final(md, &context))
+        return -1;
+
+    printBytes(md, SHA256_DIGEST_LENGTH);
+
     return 0;
 }
 
@@ -123,7 +109,7 @@ void printBytes(unsigned char* buff, size_t len) {
     for (int i = 0; i < len; i++) {
         printf("%02x", buff[i]);
         if (i % 16 == 15)
-            printf("\n                     ");
+            printf("\n");
     }
     printf("\n");
 }
