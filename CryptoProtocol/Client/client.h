@@ -10,5 +10,12 @@
 #define client_h
 
 #include <stdio.h>
+#include <netinet/in.h>
+
+#define MSG_SIZE 1024
+
+int sock;
+struct sockaddr_in server;
+char message[MSG_SIZE], server_reply[MSG_SIZE];
 
 #endif /* client_h */

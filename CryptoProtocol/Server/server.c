@@ -20,12 +20,9 @@
 #include<arpa/inet.h> //inet_addr
 #include<unistd.h>    //write
 
-#define MSG_SIZE 1024
+#include "server.h"
 
 int main(int argc, char *argv[]) {
-    int socket_desc, client_sock, c, read_size;
-    struct sockaddr_in server, client;
-    char client_message[MSG_SIZE];
 
     //Create socket
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);

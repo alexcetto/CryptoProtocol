@@ -17,12 +17,9 @@
 #include<arpa/inet.h> //inet_addr
 #include <unistd.h>
 
-#define MSG_SIZE 1024
+#include "client.h"
 
 int main(int argc, char *argv[]) {
-    int sock;
-    struct sockaddr_in server;
-    char message[MSG_SIZE], server_reply[MSG_SIZE];
 
     //Create socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -66,4 +63,8 @@ int main(int argc, char *argv[]) {
 
     close(sock);
     return 0;
+}
+
+int authentification() {
+
 }
