@@ -14,16 +14,47 @@
     C socket server example
 */
 
-#include<stdio.h>
-#include<string.h>    //strlen
-#include<sys/socket.h>
-#include<arpa/inet.h> //inet_addr
-#include<unistd.h>    //write
+#include <stdio.h>
+#include <string.h>    //strlen
+#include <sys/socket.h>
+#include <arpa/inet.h> //inet_addr
+#include <unistd.h>    //write
+#include "openssl/rand.h"
+#include "openssl/err.h"
 
 #include "server.h"
+#include "../Auth/auth.h"
 
 int main(int argc, char *argv[]) {
 
+    openSocket();
+    acceptNewClient();
+    //Receive a message from client
+    /*while (1) {
+        bzero(client_message, MSG_SIZE);
+        read_size = recv(client_sock, client_message, MSG_SIZE, 0);
+
+        puts("Received :");
+        puts(client_message);
+
+        //Send the message back to client
+        write(client_sock, client_message, read_size);
+    }*/
+
+    if (read_size == 0) {
+        puts("Client disconnected");
+        fflush(stdout);
+    }
+    else if (read_size == -1) {
+        perror("recv failed");
+    }
+
+    close(socket_desc);
+
+    return 0;
+}
+
+int openSocket() {
     //Create socket
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
@@ -47,6 +78,10 @@ int main(int argc, char *argv[]) {
     //Listen
     listen(socket_desc, 3);
 
+    return 0;
+}
+
+int acceptNewClient() {
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
@@ -59,21 +94,32 @@ int main(int argc, char *argv[]) {
     }
     puts("Connection accepted");
 
-    //Receive a message from client
-    while (1) {
-        bzero(client_message, MSG_SIZE);
-        read_size = recv(client_sock, client_message, MSG_SIZE, 0);
-        //Send the message back to client
-        write(client_sock, client_message, read_size);
+    bzero(client_message, MSG_SIZE);
+    read_size = (int) recv(client_sock, client_message, MSG_SIZE, 0);
+
+    puts("Received :");
+    puts(client_message);
+
+    if(strncmp(client_message, MSG_HELLO, strlen(MSG_HELLO)) != 0) {
+        perror("ERROR: Wrong Hello msg");
+        return 1;
     }
 
-    if (read_size == 0) {
-        puts("Client disconnected");
-        fflush(stdout);
+    /**
+     * @TODO: remplace by fonction
+     */
+    unsigned char nonce[4];
+    int rc = RAND_bytes(nonce, sizeof(nonce));
+    unsigned long err = ERR_get_error();
+
+    if(rc != 1) {
+        perror("ERROR: ");
+        printf("%d", err);
     }
-    else if (read_size == -1) {
-        perror("recv failed");
-    }
+
+    /**
+     * @TODO: Send certificate, nonce, SIG(nonce)
+     */
 
     return 0;
 }

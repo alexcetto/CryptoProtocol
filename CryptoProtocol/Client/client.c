@@ -20,9 +20,26 @@
 #include "client.h"
 
 int main(int argc, char *argv[]) {
+    char message[MSG_SIZE], msg_received[MSG_SIZE];
+    int sock = openSocket();
 
+    //keep communicating with server
+    while (1) {
+        printf("Enter message : ");
+        scanf("%s", message);
+
+        sendCommand(sock, message);
+
+        receivedResponse(sock);
+    }
+
+    close(sock);
+    return 0;
+}
+
+int openSocket(void) {
     //Create socket
-    sock = socket(AF_INET, SOCK_STREAM, 0);
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
         printf("Could not create socket");
     }
@@ -40,31 +57,32 @@ int main(int argc, char *argv[]) {
 
     puts("Connected\n");
 
-    //keep communicating with server
-    while (1) {
-        printf("Enter message : ");
-        scanf("%s", message);
-
-        //Send some data
-        if (send(sock, message, strlen(message), 0) < 0) {
-            puts("Send failed");
-            return 1;
-        }
-
-        //Receive a reply from the server
-        if (recv(sock, server_reply, MSG_SIZE, 0) < 0) {
-            puts("recv failed");
-            break;
-        }
-
-        puts("Server reply :");
-        puts(server_reply);
+    printf("Message : %s\n", HELLO_MSG);
+    if (send(sock, HELLO_MSG, strlen(HELLO_MSG), 0) < 0) {
+        puts("Send failed");
+        return -1;
     }
 
-    close(sock);
+    return sock;
+}
+
+int sendCommand(int sock, char* message) {
+    //Send some data
+    if (send(sock, message, strlen(message), 0) < 0) {
+        puts("Send failed");
+        return 1;
+    }
     return 0;
 }
 
-int authentification() {
-
+void receivedResponse(int sock) {
+    char msg_received[MSG_SIZE];
+    //Receive a reply from the server
+    if (recv(sock, msg_received, MSG_SIZE, 0) < 0) {
+        puts("recv failed");
+        return;
+    }
+    puts("Received : ");
+    puts(msg_received);
+    return;
 }

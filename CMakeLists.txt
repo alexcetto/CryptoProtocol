@@ -11,7 +11,7 @@ set(SOURCE_FILES_CLIENT
         CryptoProtocol/Client/client.c)
 
 set(SOURCE_FILES_SERVER
-        CryptoProtocol/Server/server.c)
+        CryptoProtocol/Server/server.c CryptoProtocol/Auth/auth.c CryptoProtocol/Auth/auth.h)
 
 add_executable(CryptoProtocolClient ${SOURCE_FILES_CLIENT})
 add_executable(CryptoProtocolServer ${SOURCE_FILES_SERVER})
