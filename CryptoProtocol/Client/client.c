@@ -57,11 +57,17 @@ int openSocket(void) {
 
     puts("Connected\n");
 
+    // Send Hello message
     printf("Message : %s\n", HELLO_MSG);
     if (send(sock, HELLO_MSG, strlen(HELLO_MSG), 0) < 0) {
         puts("Send failed");
         return -1;
     }
+
+    // Receive ServerCert, Nonce, Sig(Nonce)
+
+
+
 
     return sock;
 }
