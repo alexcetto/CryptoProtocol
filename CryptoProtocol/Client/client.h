@@ -10,5 +10,17 @@
 #define client_h
 
 #include <stdio.h>
+#include <netinet/in.h>
+
+#define MSG_SIZE 1024
+#define HELLO_MSG "Hello,1.0"
+
+//int sock;
+struct sockaddr_in server;
+
+
+int openSocket(void);
+int sendCommand(int sock, char* message);
+void receivedResponse(int socket);
 
 #endif /* client_h */
