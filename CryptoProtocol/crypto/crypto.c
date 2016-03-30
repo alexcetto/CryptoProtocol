@@ -175,6 +175,8 @@ unsigned char* sign(unsigned char* nonce) {
     RSA* privkey = NULL;
     const char * name = "HOME";
     char * value;
+    char * valuebis;
+
     char * finalPathPublic;
     char * finalPathPrivate;
 
@@ -185,9 +187,10 @@ unsigned char* sign(unsigned char* nonce) {
         printf("Connais pas $HOME");
         exit(EXIT_FAILURE);
     }
-
+    valuebis = malloc(sizeof(value));
+    strcpy(valuebis, value);
     finalPathPublic = strcat(value, "/CryptoProtocol/cert/public.pem");
-    finalPathPrivate = strcat(value, "/CryptoProtocol/cert/private.pem");
+    finalPathPrivate = strcat(valuebis, "/CryptoProtocol/cert/private.pem");
 
 
     OpenSSL_add_all_algorithms();
