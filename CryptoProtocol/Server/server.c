@@ -26,6 +26,9 @@
 #include "../Auth/auth.h"
 #include "../crypto/crypto.h"
 
+
+
+
 int main(int argc, char *argv[]) {
 
     openSocket();
@@ -87,6 +90,8 @@ int acceptNewClient() {
     size_t certSize; /* filesize */
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
 
+    char * homepath = getenv("HOME"); // look for the user's directory
+
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
@@ -124,9 +129,19 @@ int acceptNewClient() {
     // store cert in buffer
     printf("Storing cert into buffer...\n");
 
-    fp = fopen(PATH_CERT,"rb"); /*open file*/
+    if(homepath == NULL) {
+        printf("Connais pas HOMEPATH LOL");
+        exit(EXIT_FAILURE);
+    }
+
+    sprintf(homepath,"%s/CryptoProtocol/cert/cert.pem",homepath);
+    printf(homepath);
+
+
+
+    fp = fopen(homepath,"rb"); /*open file*/
     if (fp == NULL){ /*ERROR detection if file == empty*/
-        printf("Error: There was an Error reading the file %s \n", PATH_CERT);
+        printf("Error: There was an Error reading the file %s \n", homepath);
         exit(1);
     }
 
@@ -137,7 +152,7 @@ int acceptNewClient() {
     buffer = malloc(certSize);  /*allocalte space on heap*/
 
     if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
-        printf("Error: There was an Error reading the file %s\n", PATH_CERT);
+        printf("Error: There was an Error reading the file %s\n", homepath);
         exit(1);
     }
 

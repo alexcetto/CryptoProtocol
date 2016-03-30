@@ -14,7 +14,6 @@
 
 #define MSG_SIZE 1024
 #define MSG_HELLO "Hello,1.0"
-#define PATH_CERT "/Users/olivier/Documents/Polytech/Cours 4a Moi/S8/FondProtCrypt/CryptoProtocol/CryptoProtocol/Server/cert/cert.pem"
 
 int openSocket();
 int acceptNewClient();
