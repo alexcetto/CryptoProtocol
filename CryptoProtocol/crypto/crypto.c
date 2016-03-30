@@ -165,10 +165,10 @@ void printBytes(unsigned char* buff, size_t len) {
 /***************************************************************************************/
 
 /** Signe le nonce avec cle privee RSA.
- @param  [char*]          nonce nonce,
- @return [unsigned char*] signature.
+ @param  [unsigned char*] nonce     nonce,
+ @param  [unsigned char*] signature signature.
  **/
-unsigned char* sign(unsigned char* nonce) {
+void sign(unsigned char* nonce, unsigned char* signature) {
     FILE* pubkeyFile;
     FILE* privkeyFile;
     RSA* pubkey = NULL;
@@ -184,21 +184,21 @@ unsigned char* sign(unsigned char* nonce) {
     // Lecture de la cle publique RSA.
     if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Public Key File.\n");
-        return -1;
+        exit(1);
     }
     fclose(pubkeyFile);
 
     // Lecture de la cle privee RSA.
     if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Private Key File.\n");
-        return -1;
+        exit(1);
     }
     fclose(privkeyFile);
 
     // Hashe
     unsigned char hash[SHA256_DIGEST_LENGTH];
     // Signature
-    unsigned char signature[512];
+    signature = malloc(sizeof(unsigned char)*512);
     // Taille de la signature
     unsigned int signLen;
     int ret;
@@ -212,8 +212,6 @@ unsigned char* sign(unsigned char* nonce) {
     /* Verification */
     ret = RSA_verify(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, signLen, pubkey);
     printf("RSA_Verify: %s\n", (ret == 1) ? "OK" : "NONOK");
-
-    return signature;
 }
 
 /***************************************************************************************/
@@ -296,7 +294,7 @@ unsigned char* cryptWithPublicKey(unsigned char* packet) {
  */
 unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     char* privatePath = getPath("private");
-    FILE* privkeyFile = fopen(privatePath, "r");
+    FILE* privkeyFile = fopen((const char*)privatePath, "r");
     RSA* privkey = NULL;
 
     // Lecture de la cle privee RSA.

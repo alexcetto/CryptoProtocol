@@ -117,10 +117,10 @@ int SHA256_hach(void* input, unsigned long length, unsigned char* md);
  */
 int generateNonce(unsigned char* nonce);
 /** Signe le nonce avec cle privee RSA.
- @param  [char*]          nonce nonce,
- @return [unsigned char*] signature.
+ @param  [unsigned char*] nonce     nonce,
+ @param  [unsigned char*] signature signature.
  **/
-unsigned char* sign(unsigned char* nonce);
+void sign(unsigned char* nonce, unsigned char* signature);
 
 /** Chiffre un paquet avec cle publique RSA.
  * @param  [unsigned char*] packet paquet,

@@ -103,7 +103,7 @@ int acceptNewClient() {
     size_t buffSize;
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
     unsigned char nonce[4];
-    unsigned char signedNonce[512];
+    unsigned char* signedNonce;
     char* certPath = getPath("cert");
 
 
@@ -138,7 +138,7 @@ int acceptNewClient() {
     puts(nonce);
 
     // Sign Nonce
-    strcpy(signedNonce, sign(nonce));
+    sign(nonce, signedNonce);
     puts("Signed nonce : ");
     puts(signedNonce);
 

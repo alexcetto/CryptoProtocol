@@ -11,10 +11,10 @@
 
 int main(int argc, const char * argv[]) {
     // Passphrase
-    setPassPhrase();
+    //setPassPhrase();
 
     /* Generation de la cle de session */
-    generateSessionKey();
+    //generateSessionKey();
 
     /* Chiffrement */
     //char* cipher = encryptAES("KALASH");
@@ -36,7 +36,7 @@ int main(int argc, const char * argv[]) {
     generateNonce(n);
 
     /* Signature */
-    sign(n);
+    //sign(n);
 
     unsigned char* encoded = cryptWithPublicKey("poulpe");
     printf("encoded: %s\n", encoded);
