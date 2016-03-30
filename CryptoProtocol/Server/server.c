@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
 #include <unistd.h>    //write
+#include <stdlib.h>
 #include "openssl/rand.h"
 #include "openssl/err.h"
 
@@ -99,10 +100,14 @@ int openSocket() {
 int acceptNewClient() {
     FILE *fp; /* certificate */
     size_t certSize; /* filesize */
+    size_t buffSize;
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
 
-    char * homepath = getenv("HOME"); // look for the user's directory
-    char finalPath[100];
+    const char * name = "HOME";
+    char * value;
+    char * finalPath;
+
+    value = getenv(name); // look for the user's directory
 
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
@@ -141,19 +146,20 @@ int acceptNewClient() {
     // store cert in buffer
     printf("Storing cert into buffer...\n");
 
-    if(homepath == NULL) {
+    if(value == NULL) {
         printf("Connais pas HOMEPATH LOL");
         exit(EXIT_FAILURE);
     }
 
-    sprintf(finalPath,"%s/CryptoProtocol/cert/cert.pem",homepath);
-    printf(finalPath);
+    puts(value);
+    //sprintf(finalPath,"%s/CryptoProtocol/cert/cert.pem",value);
+    finalPath = strcat(value, "/CryptoProtocol/cert/cert.pem");
 
+    printf("LOOL %s\n", finalPath);
 
-
-    fp = fopen(finalPath,"rb"); /*open file*/
+    fp = fopen((const char*)finalPath,"r"); /*open file*/
     if (fp == NULL){ /*ERROR detection if file == empty*/
-        printf("Error: There was an Error reading the file %s \n", finalPath);
+        printf("Error: There was an Error opening the file %s \n", finalPath);
         exit(1);
     }
 
@@ -161,7 +167,8 @@ int acceptNewClient() {
 
     certSize = (size_t) ftell(fp);         /*calc the certSize needed*/
     fseek(fp, 0, SEEK_SET);
-    buffer = malloc(certSize);  /*allocalte space on heap*/
+    buffSize = certSize + sizeof(delimiter) + sizeof(nonce);
+    buffer = malloc(buffSize);  /*allocalte space on heap*/
 
     if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
         printf("Error: There was an Error reading the file %s\n", finalPath);
@@ -175,17 +182,26 @@ int acceptNewClient() {
     printf("\n");*/
 
     fclose(fp);
-    free(buffer);
+
 
     //@TODO: Debug Signature
 
+    /*
     unsigned char* signedNonce ;
     signedNonce = sign(nonce);
 
     puts("Signed Nonce ");
     puts(signedNonce);
+    */
 
+    // Append nonce to buffer
+    sprintf(buffer + strlen(buffer), delimiter);
+    sprintf(buffer + strlen(buffer), nonce);
 
+    printf("Buffer : ");
+    puts(buffer);
+
+    free(buffer);
 
      /*
      * @TODO: Receive(C(SessionKey, Nonce+1))

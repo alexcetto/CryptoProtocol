@@ -21,5 +21,6 @@ int acceptNewClient();
 int socket_desc, client_sock, c, read_size;
 struct sockaddr_in server, client;
 char client_message[MSG_SIZE];
+char* delimiter = ",";
 
 #endif /* server_h */
