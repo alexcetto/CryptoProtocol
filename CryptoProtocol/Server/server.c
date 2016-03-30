@@ -59,11 +59,22 @@ int main(int argc, char *argv[]) {
 }
 
 int openSocket() {
+    int optval; // Flag value for setsockopt
+
     //Create socket
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc == -1) {
         printf("Could not create socket");
     }
+
+    /* setsockopt: Handy debugging trick that lets
+     * us rerun the server immediately after we kill it;
+     * otherwise we have to wait about 20 secs.
+     * Eliminates "ERROR on binding: Address already in use" error.
+     */
+    optval = 1;
+    setsockopt(socket_desc, SOL_SOCKET, SO_REUSEADDR,
+               (const void *)&optval , sizeof(int));
     puts("Socket created");
 
     //Prepare the sockaddr_in structure
@@ -91,6 +102,7 @@ int acceptNewClient() {
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
 
     char * homepath = getenv("HOME"); // look for the user's directory
+    char finalPath[100];
 
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
@@ -134,14 +146,14 @@ int acceptNewClient() {
         exit(EXIT_FAILURE);
     }
 
-    sprintf(homepath,"%s/CryptoProtocol/cert/cert.pem",homepath);
-    printf(homepath);
+    sprintf(finalPath,"%s/CryptoProtocol/cert/cert.pem",homepath);
+    printf(finalPath);
 
 
 
-    fp = fopen(homepath,"rb"); /*open file*/
+    fp = fopen(finalPath,"rb"); /*open file*/
     if (fp == NULL){ /*ERROR detection if file == empty*/
-        printf("Error: There was an Error reading the file %s \n", homepath);
+        printf("Error: There was an Error reading the file %s \n", finalPath);
         exit(1);
     }
 
@@ -152,7 +164,7 @@ int acceptNewClient() {
     buffer = malloc(certSize);  /*allocalte space on heap*/
 
     if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
-        printf("Error: There was an Error reading the file %s\n", homepath);
+        printf("Error: There was an Error reading the file %s\n", finalPath);
         exit(1);
     }
 
