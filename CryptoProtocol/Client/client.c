@@ -16,6 +16,7 @@
 #include<sys/socket.h>    //socket
 #include<arpa/inet.h> //inet_addr
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "client.h"
 
@@ -63,6 +64,10 @@ int openSocket(void) {
         puts("Send failed");
         return -1;
     }
+
+    receivedResponse(sock);
+
+    exit(0);
 
     /*
      * @TODO: receive(ServerCert, Nonce, Sig(Nonce))

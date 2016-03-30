@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <netinet/in.h>
 
-#define MSG_SIZE 1024
+#define MSG_SIZE 4096
 #define HELLO_MSG "Hello,1.0"
 
 //int sock;
