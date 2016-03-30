@@ -160,17 +160,70 @@ void printBytes(unsigned char* buff, size_t len) {
     printf("\n");
 }
 
-void sign(char* s);
+/***************************************************************************************/
+/****************************** 3. DSA SIGNATURE FUNCTION ******************************/
+/***************************************************************************************/
 
-unsigned char* generateNonce() {
-    unsigned char nonce[4];
+/** Signe un fichier avec cle privee DSA.
+ @param [char*]          filename      fichier a signer,
+ @param [char*]          pkeyFilename  fichier de la cle privee.
+ @return [int] statut 0 succes, -1 erreur.
+ **/
+unsigned char *sign(unsigned char *nonce) {
+    EVP_PKEY *privkey;
+    FILE *fp;
+    RSA *rsakey;
+
+    /* ---------------------------------------------------------- *
+     * Next function is essential to enable openssl functions     *
+     ------------------------------------------------------------ */
+    OpenSSL_add_all_algorithms();
+
+    privkey = EVP_PKEY_new();
+    fp = fopen(
+            "/Users/olivier/Documents/Polytech/Cours 4a Moi/S8/FondProtCrypt/CryptoProtocol/CryptoProtocol/Server/cert/key.pem",
+            "r");
+    PEM_read_PrivateKey(fp, &privkey, NULL, "cryptoprotocol");
+    fclose(fp);
+
+    rsakey = EVP_PKEY_get1_RSA(privkey);
+
+    if (RSA_check_key(rsakey)) {
+        printf("RSA key is valid.\n");
+    }
+    else {
+        printf("Error validating RSA key.\n");
+    }
+
+    RSA_print_fp(stdout, rsakey, 3);
+
+    PEM_write_PrivateKey(stdout, privkey, NULL, NULL, 0, 0, NULL);
+
+    unsigned char signedNonce[RSA_size(rsakey)];
+    size_t sigLen;
+    int res = RSA_sign(NID_md5_sha1, nonce, sizeof(nonce), signedNonce, &sigLen, rsakey);
+    unsigned long err = ERR_get_error();
+    if (res != 1)
+        printf("%lu", err);
+
+    printf("%s\n", signedNonce);
+
+
+}
+
+/***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
+
+
+int generateNonce(unsigned char* nonce) {
     int rc = RAND_bytes(nonce, sizeof(nonce));
     unsigned long err = ERR_get_error();
 
     if (rc != 1)
         printf("%lu", err);
 
-    return nonce;
+    return 0;
 }
 
 void decryptWithPrivateKey();

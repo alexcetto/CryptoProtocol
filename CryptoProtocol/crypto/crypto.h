@@ -105,8 +105,8 @@ int SHA256_hach(void* input, unsigned long length, unsigned char* md);
  **/
 void printBytes(unsigned char* buff, size_t len);
 
-void sign(char* s);
-unsigned char* generateNonce();
+unsigned char *sign(unsigned char *nonce);
+int generateNonce(unsigned char* nonce);
 void cryptWithPublicKey();
 void decryptWithPrivateKey();
 void checkSign();

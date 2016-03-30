@@ -64,7 +64,14 @@ int openSocket(void) {
         return -1;
     }
 
-    // Receive ServerCert, Nonce, Sig(Nonce)
+    /*
+     * @TODO: receive(ServerCert, Nonce, Sig(Nonce))
+     * @TODO: Verif cert received with known one
+     * @TODO: Generate Session Key
+     * @TODO: send(cypher(session Key, Nonce+1))
+     * @TODO: send(user:pwd, Nonce+1)
+     * @TODO: receive(Connection OK)
+     */
 
 
 

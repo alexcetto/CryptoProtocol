@@ -24,6 +24,7 @@
 
 #include "server.h"
 #include "../Auth/auth.h"
+#include "../crypto/crypto.h"
 
 int main(int argc, char *argv[]) {
 
@@ -82,6 +83,10 @@ int openSocket() {
 }
 
 int acceptNewClient() {
+    FILE *fp; /* certificate */
+    size_t certSize; /* filesize */
+    unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
+
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
     c = sizeof(struct sockaddr_in);
@@ -109,16 +114,59 @@ int acceptNewClient() {
      * @TODO: remplace by fonction
      */
     unsigned char nonce[4];
-    int rc = RAND_bytes(nonce, sizeof(nonce));
-    unsigned long err = ERR_get_error();
-
-    if(rc != 1) {
-        perror("ERROR: ");
-        printf("%d", err);
-    }
+    generateNonce(nonce);
+    puts("Nonce ");
+    puts(nonce);
 
     /**
-     * @TODO: Send certificate, nonce, SIG(nonce)
+     * @TODO: Send(certificate, nonce, SIG(nonce)) - In progress
+     */
+    // store cert in buffer
+    printf("Storing cert into buffer...\n");
+
+    fp = fopen(PATH_CERT,"rb"); /*open file*/
+    if (fp == NULL){ /*ERROR detection if file == empty*/
+        printf("Error: There was an Error reading the file %s \n", PATH_CERT);
+        exit(1);
+    }
+
+    fseek(fp, 0, SEEK_END);
+
+    certSize = (size_t) ftell(fp);         /*calc the certSize needed*/
+    fseek(fp, 0, SEEK_SET);
+    buffer = malloc(certSize);  /*allocalte space on heap*/
+
+    if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
+        printf("Error: There was an Error reading the file %s\n", PATH_CERT);
+        exit(1);
+    }
+
+    /*int i;
+    for(i=0; i<certSize;i++){
+        printf("%02x", buffer[i]);
+    }
+    printf("\n");*/
+
+    fclose(fp);
+    free(buffer);
+
+    //@TODO: Debug Signature
+
+    unsigned char* signedNonce ;
+    signedNonce = sign(nonce);
+
+    puts("Signed Nonce ");
+    puts(signedNonce);
+
+
+
+     /*
+     * @TODO: Receive(C(SessionKey, Nonce+1))
+     * @TODO: Uncypher with private RSA key Session Key & check Nonce
+     * @TODO: Receive(user:pwd, Nonce+1)
+     * @TODO: Uncypher with Session Key & check Nonce
+     * @TODO: checkUser(user, pwd)
+     * @TODO: Send(Connection OK) OR Send(Connection NOT OK)
      */
 
     return 0;
