@@ -102,12 +102,17 @@ int acceptNewClient() {
     size_t certSize; /* filesize */
     size_t buffSize;
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
+    unsigned char nonce[4];
+    unsigned char signedNonce[512];
 
     const char * name = "HOME";
     char * value;
+    char * valueBis;
     char * finalPath;
 
     value = getenv(name); // look for the user's directory
+    valueBis = malloc(sizeof(value));
+    strcpy(valueBis, value);
 
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
@@ -132,13 +137,16 @@ int acceptNewClient() {
         return 1;
     }
 
-    /**
-     * @TODO: remplace by fonction
-     */
-    unsigned char nonce[4];
+    // Generate Nonce
     generateNonce(nonce);
     puts("Nonce ");
     puts(nonce);
+
+    // Sign Nonce
+    strcpy(signedNonce, sign(nonce));
+    puts("Signed nonce : ");
+    puts(signedNonce);
+
 
     /**
      * @TODO: Send(certificate, nonce, SIG(nonce)) - In progress
@@ -151,15 +159,11 @@ int acceptNewClient() {
         exit(EXIT_FAILURE);
     }
 
-    puts(value);
-    //sprintf(finalPath,"%s/CryptoProtocol/cert/cert.pem",value);
-    finalPath = strcat(value, "/CryptoProtocol/cert/cert.pem");
+    strcat(valueBis, "/CryptoProtocol/cert/cert.pem");
 
-    printf("LOOL %s\n", finalPath);
-
-    fp = fopen((const char*)finalPath,"r"); /*open file*/
-    if (fp == NULL){ /*ERROR detection if file == empty*/
-        printf("Error: There was an Error opening the file %s \n", finalPath);
+    fp = fopen((const char*)valueBis,"r");
+    if (fp == NULL) {
+        printf("Error: There was an Error opening the file %s \n", valueBis);
         exit(1);
     }
 
@@ -167,39 +171,30 @@ int acceptNewClient() {
 
     certSize = (size_t) ftell(fp);         /*calc the certSize needed*/
     fseek(fp, 0, SEEK_SET);
-    buffSize = certSize + sizeof(delimiter) + sizeof(nonce);
+    buffSize = certSize + sizeof(delimiter) + sizeof(nonce) + sizeof(delimiter) + sizeof(signedNonce);
     buffer = malloc(buffSize);  /*allocalte space on heap*/
 
     if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
-        printf("Error: There was an Error reading the file %s\n", finalPath);
+        printf("Error: There was an Error reading the file %s\n", valueBis);
         exit(1);
     }
 
-    /*int i;
-    for(i=0; i<certSize;i++){
-        printf("%02x", buffer[i]);
-    }
-    printf("\n");*/
-
     fclose(fp);
 
-
-    //@TODO: Debug Signature
-
-    /*
-    unsigned char* signedNonce ;
-    signedNonce = sign(nonce);
-
-    puts("Signed Nonce ");
-    puts(signedNonce);
-    */
-
-    // Append nonce to buffer
+    // Append ",nonce,signedNonce" to buffer
     sprintf(buffer + strlen(buffer), delimiter);
     sprintf(buffer + strlen(buffer), nonce);
+    sprintf(buffer + strlen(buffer), delimiter);
+    sprintf(buffer + strlen(buffer), signedNonce);
 
-    printf("Buffer : ");
     puts(buffer);
+    printf("strlen(buffer) %d\n", strlen(buffer));
+    printf("buffSize %d\n", buffSize);
+    if (send(socket_desc, buffer, buffSize, 0) < 0) {
+        puts("Send failed");
+        return -1;
+    }
+
 
     free(buffer);
 
