@@ -173,29 +173,13 @@ unsigned char* sign(unsigned char* nonce) {
     FILE* privkeyFile;
     RSA* pubkey = NULL;
     RSA* privkey = NULL;
-    const char * name = "HOME";
-    char * value;
-    char * valuebis;
-
-    char * finalPathPublic;
-    char * finalPathPrivate;
-
-
-    value = getenv(name); // look for the user's directory
-
-    if(value == NULL) {
-        printf("Connais pas $HOME");
-        exit(EXIT_FAILURE);
-    }
-    valuebis = malloc(sizeof(value));
-    strcpy(valuebis, value);
-    finalPathPublic = strcat(value, "/CryptoProtocol/cert/public.pem");
-    finalPathPrivate = strcat(valuebis, "/CryptoProtocol/cert/private.pem");
-
 
     OpenSSL_add_all_algorithms();
-    pubkeyFile = fopen((const char*)finalPathPublic, "r");
-    privkeyFile = fopen((const char*)finalPathPrivate, "r");
+    char* publicPath = getPath("public");
+    char* privatePath = getPath("private");
+
+    pubkeyFile = fopen(publicPath, "r");
+    privkeyFile = fopen(privatePath, "r");
 
     // Lecture de la cle publique RSA.
     if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
@@ -236,7 +220,10 @@ unsigned char* sign(unsigned char* nonce) {
 /***************************************************************************************/
 /***************************************************************************************/
 
-
+/** Generation d'un nonce.
+ * @param [unsigned char*] nonce nonce,
+ * @return 0, succes.
+ */
 int generateNonce(unsigned char* nonce) {
     int rc = RAND_bytes(nonce, sizeof(nonce));
     unsigned long err = ERR_get_error();
@@ -247,7 +234,105 @@ int generateNonce(unsigned char* nonce) {
     return 0;
 }
 
-void decryptWithPrivateKey();
-
 void checkSign();
-void cryptWithPublicKey();
+/** Recuperation du chemin absolu.
+ * @param  [char*] keyType type de la cle (public, private),
+ * @return [char*] chemin absolu.
+ */
+char* getPath(char* keyType) {
+    const char* name = "HOME";
+    char* value;
+    char* finalPath;
+
+    value = getenv(name); // look for the user's directory
+
+    if (value == NULL) {
+        printf("Connais pas $HOME");
+        exit(EXIT_FAILURE);
+    }
+
+    finalPath = malloc(strlen(value)+strlen(keyType)+26);
+
+    /* Reconstruction du chemin relatif. */
+    strcat(finalPath, value);
+    strcat(finalPath, "/CryptoProtocol/cert/");
+    strcat(finalPath, keyType);
+    strcat(finalPath, ".pem");
+
+    return finalPath;
+}
+
+/** Chiffre un paquet avec cle publique RSA.
+ * @param  [unsigned char*] packet paquet,
+ * @return [unsigned char*] chaine de caracteres chiffree.
+ */
+unsigned char* cryptWithPublicKey(unsigned char* packet) {
+    char* publicPath = getPath("public");
+    FILE* pubkeyFile = fopen(publicPath, "r");
+    RSA* pubkey = NULL;
+
+    // Lecture de la cle publique RSA.
+    if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
+        fprintf(stderr, "Error loading Public Key File.\n");
+        return -1;
+    }
+    fclose(pubkeyFile);
+
+    int pktLen;
+    unsigned char encrypt[1024];
+    /* encrypt */
+    pktLen = RSA_public_encrypt(pktLen, packet, encrypt, pubkey,
+                                    RSA_PKCS1_OAEP_PADDING);
+    /* print data */
+    printHex("ENCRYPT", encrypt, pktLen);
+    printf("Encrypt length = %d\n", pktLen);
+
+    return encrypt;
+}
+
+/** Dechiffre un paquet chiffre avec cle privee RSA.
+ * @param  [unsigned char*] encodedPacket paquet chiffre,
+ * @return [unsigned char*] chaine de caracteres dechiffree.
+ */
+unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
+    char* privatePath = getPath("private");
+    FILE* privkeyFile = fopen(privatePath, "r");
+    RSA* privkey = NULL;
+
+    // Lecture de la cle privee RSA.
+    if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
+        fprintf(stderr, "Error loading Private Key File.\n");
+        return -1;
+    }
+    fclose(privkeyFile);
+
+    int encPktLen;
+    unsigned char decrypt[1024];
+
+    /* decrypt */
+    encPktLen = RSA_private_decrypt(encPktLen, encodedPacket, decrypt, privkey,
+                                     RSA_PKCS1_OAEP_PADDING);
+    printHex("DECRYPT", decrypt, encPktLen);
+    if (strlen(encodedPacket) != encPktLen) {
+        return 1;
+    }
+    for (int i = 0; i < encPktLen; i++) {
+        if (encodedPacket[i] != decrypt[i]) {
+            return 1;
+        }
+    }
+
+    return decrypt;
+}
+
+void printHex(const char *title, const unsigned char *s, int len) {
+    int     n;
+    printf("%s:", title);
+    for (n = 0; n < len; ++n) {
+        if ((n % 16) == 0) {
+            printf("\n%04x", n);
+        }
+        printf(" %02x", s[n]);
+    }
+    printf("\n");
+}

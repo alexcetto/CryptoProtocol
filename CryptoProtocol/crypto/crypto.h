@@ -35,7 +35,7 @@
 
 #define BUFF_SIZE 1024
 
-/******************************* GENERATION KEY SESSION ********************************/
+/********************************** UTILS FUNCTIONS ************************************/
 /* Passphrase */
 unsigned char passPhrase[AES_BLOCK_SIZE];
 
@@ -45,6 +45,18 @@ void setPassPhrase();
 /** Recuperation d'un passphrase.
  **/
 unsigned char* getPassPhrase();
+
+/** Recuperation du chemin absolu.
+ * @param  [char*] keyType type de la cle (public, private),
+ * @return [char*] chemin absolu.
+ */
+char* getPath(char* keyType);
+
+/** Affichage buffer.
+ @param [unsigned char*]  buff  buffer,
+ @param [size_t]          len   taille du buffer.
+ **/
+void printBytes(unsigned char* buff, size_t len);
 /***************************************************************************************/
 
 /******************************* GENERATION KEY SESSION ********************************/
@@ -99,17 +111,30 @@ unsigned char* decryptAES(unsigned char* cipher);
 int SHA256_hach(void* input, unsigned long length, unsigned char* md);
 /***************************************************************************************/
 
-/** Affichage buffer.
- @param [unsigned char*]  buff  buffer,
- @param [size_t]          len   taille du buffer.
- **/
-void printBytes(unsigned char* buff, size_t len);
-
-unsigned char *sign(unsigned char *nonce);
+/** Generation d'un nonce.
+ * @param [unsigned char*] nonce nonce,
+ * @return 0, succes.
+ */
 int generateNonce(unsigned char* nonce);
-void cryptWithPublicKey();
-void decryptWithPrivateKey();
+/** Signe le nonce avec cle privee RSA.
+ @param  [char*]          nonce nonce,
+ @return [unsigned char*] signature.
+ **/
+unsigned char* sign(unsigned char* nonce);
+
+/** Chiffre un paquet avec cle publique RSA.
+ * @param  [unsigned char*] packet paquet,
+ * @return [unsigned char*] chaine de caracteres chiffree.
+ */
+unsigned char* cryptWithPublicKey(unsigned char* packet);
+
+/** Dechiffre un paquet chiffre avec cle privee RSA.
+ * @param  [unsigned char*] encodedPacket paquet chiffre,
+ * @return [unsigned char*] chaine de caracteres dechiffree.
+ */
+unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket);
+
 void checkSign();
 
-
+void printHex(const char *title, const unsigned char *s, int len);
 #endif /* crypto_h */

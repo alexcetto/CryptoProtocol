@@ -17,27 +17,31 @@ int main(int argc, const char * argv[]) {
     generateSessionKey();
 
     /* Chiffrement */
-    char* cipher = encryptAES("KALASH");
+    //char* cipher = encryptAES("KALASH");
     /* Dechiffrement */
-    char* plaintext = decryptAES(cipher);
+    //char* plaintext = decryptAES(cipher);
 
     // Hashe
-    unsigned char md[SHA256_DIGEST_LENGTH];
+    //unsigned char md[SHA256_DIGEST_LENGTH];
     // Message a hacher
-    char* message = "POULPE";
+    //char* message = "POULPE";
     /* SHA256 */
-    if(!SHA256_hach(message, sizeof(message), md)) {
+    //if(!SHA256_hach(message, sizeof(message), md)) {
         // Traitement des erreurs.
-    }
+    //}
 
     // Nonce
     unsigned char* n[4];
     /* Generation du nonce */
     generateNonce(n);
-    printf("nonce: %s\n", n);
 
     /* Signature */
     sign(n);
+
+    unsigned char* encoded = cryptWithPublicKey("poulpe");
+    printf("encoded: %s\n", encoded);
+    unsigned char* unencoded = decryptWithPrivateKey(encoded);
+    printf("unencoded: %s\n", unencoded);
 
     return 0;
 }
