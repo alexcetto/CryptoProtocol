@@ -13,22 +13,31 @@ int main(int argc, const char * argv[]) {
     // Passphrase
     setPassPhrase();
 
-    // Generation de la cle de session
+    /* Generation de la cle de session */
     generateSessionKey();
 
-    // Chiffrement
+    /* Chiffrement */
     char* cipher = encryptAES("KALASH");
-    // Dechiffrement
+    /* Dechiffrement */
     char* plaintext = decryptAES(cipher);
 
-    /* SHA256 */
     // Hashe
     unsigned char md[SHA256_DIGEST_LENGTH];
     // Message a hacher
     char* message = "POULPE";
+    /* SHA256 */
     if(!SHA256_hach(message, sizeof(message), md)) {
         // Traitement des erreurs.
     }
+
+    // Nonce
+    unsigned char* n[4];
+    /* Generation du nonce */
+    generateNonce(n);
+    printf("nonce: %s\n", n);
+
+    /* Signature */
+    sign(n);
 
     return 0;
 }

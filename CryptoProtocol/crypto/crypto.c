@@ -87,6 +87,7 @@ void init_ctr(struct ctr_state *state, const unsigned char iv[AES_BLOCK_SIZE]) {
  **/
 char* encryptAES(char* plaintext) {
     char* cipher[AES_BLOCK_SIZE];
+
     if (!RAND_bytes(iv, AES_BLOCK_SIZE)) {
         fprintf(stderr, "Could not create random bytes.\n");
         return -1;
@@ -94,10 +95,9 @@ char* encryptAES(char* plaintext) {
     
     init_ctr(&state, iv); //Counter call
     
-    // Chiffrement..
+    // Chiffrement.
     AES_ctr128_encrypt((unsigned char *) plaintext, cipher, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
     printf("%s \n\n", cipher);
-
 
     return cipher;
 }
@@ -161,54 +161,56 @@ void printBytes(unsigned char* buff, size_t len) {
 }
 
 /***************************************************************************************/
-/****************************** 3. DSA SIGNATURE FUNCTION ******************************/
+/******************************** RSA SIGNATURE FUNCTION *******************************/
 /***************************************************************************************/
 
-/** Signe un fichier avec cle privee DSA.
- @param [char*]          filename      fichier a signer,
- @param [char*]          pkeyFilename  fichier de la cle privee.
- @return [int] statut 0 succes, -1 erreur.
+/** Signe le nonce avec cle privee RSA.
+ @param  [char*]          nonce nonce,
+ @return [unsigned char*] signature.
  **/
-unsigned char *sign(unsigned char *nonce) {
-    EVP_PKEY *privkey;
-    FILE *fp;
-    RSA *rsakey;
+unsigned char* sign(unsigned char* nonce) {
+    FILE* pubkeyFile;
+    FILE* privkeyFile;
+    RSA* pubkey = NULL;
+    RSA* privkey = NULL;
 
-    /* ---------------------------------------------------------- *
-     * Next function is essential to enable openssl functions     *
-     ------------------------------------------------------------ */
     OpenSSL_add_all_algorithms();
+    pubkeyFile = fopen("/Users/josetarsitano/Documents/Work/Development/CLion/CryptoProtocol/CryptoProtocol/Client/cert/public.pem", "r");
+    privkeyFile = fopen("/Users/josetarsitano/Documents/Work/Development/CLion/CryptoProtocol/CryptoProtocol/Client/cert/private.pem", "r");
 
-    privkey = EVP_PKEY_new();
-    fp = fopen(
-            "/Users/olivier/Documents/Polytech/Cours 4a Moi/S8/FondProtCrypt/CryptoProtocol/CryptoProtocol/Server/cert/key.pem",
-            "r");
-    PEM_read_PrivateKey(fp, &privkey, NULL, "cryptoprotocol");
-    fclose(fp);
-
-    rsakey = EVP_PKEY_get1_RSA(privkey);
-
-    if (RSA_check_key(rsakey)) {
-        printf("RSA key is valid.\n");
+    // Lecture de la cle publique RSA.
+    if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
+        fprintf(stderr, "Error loading Public Key File.\n");
+        return -1;
     }
-    else {
-        printf("Error validating RSA key.\n");
+    fclose(pubkeyFile);
+
+    // Lecture de la cle privee RSA.
+    if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
+        fprintf(stderr, "Error loading Private Key File.\n");
+        return -1;
     }
+    fclose(privkeyFile);
 
-    RSA_print_fp(stdout, rsakey, 3);
+    // Hashe
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    // Signature
+    unsigned char signature[512];
+    // Taille de la signature
+    unsigned int signLen;
+    int ret;
 
-    PEM_write_PrivateKey(stdout, privkey, NULL, NULL, 0, 0, NULL);
+    SHA256(nonce, 4, hash);
 
-    unsigned char signedNonce[RSA_size(rsakey)];
-    size_t sigLen;
-    int res = RSA_sign(NID_md5_sha1, nonce, sizeof(nonce), signedNonce, &sigLen, rsakey);
-    unsigned long err = ERR_get_error();
-    if (res != 1)
-        printf("%lu", err);
+    /* Signature */
+    ret = RSA_sign(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, &signLen, privkey);
+    printf("RSA_sign: %s\n", (ret == 1) ? "OK" : "NONOK");
 
-    printf("%s\n", signedNonce);
+    /* Verification */
+    ret = RSA_verify(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, signLen, pubkey);
+    printf("RSA_Verify: %s\n", (ret == 1) ? "OK" : "NONOK");
 
-
+    return signature;
 }
 
 /***************************************************************************************/
