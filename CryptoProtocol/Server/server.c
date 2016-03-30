@@ -104,15 +104,8 @@ int acceptNewClient() {
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
     unsigned char nonce[4];
     unsigned char signedNonce[512];
+    char* certPath = getPath("cert");
 
-    const char * name = "HOME";
-    char * value;
-    char * valueBis;
-    char * finalPath;
-
-    value = getenv(name); // look for the user's directory
-    valueBis = malloc(sizeof(value));
-    strcpy(valueBis, value);
 
     //Accept and incoming connection
     puts("Waiting for incoming connections...");
@@ -153,16 +146,10 @@ int acceptNewClient() {
     // store cert in buffer
     printf("Storing cert into buffer...\n");
 
-    if(value == NULL) {
-        printf("Connais pas HOMEPATH LOL");
-        exit(EXIT_FAILURE);
-    }
 
-    strcat(valueBis, "/CryptoProtocol/cert/cert.pem");
-
-    fp = fopen((const char*)valueBis,"r");
+    fp = fopen((const char*)certPath,"r");
     if (fp == NULL) {
-        printf("Error: There was an Error opening the file %s \n", valueBis);
+        printf("Error: There was an Error opening the file %s \n", certPath);
         exit(1);
     }
 
@@ -174,7 +161,7 @@ int acceptNewClient() {
     buffer = malloc(buffSize);  /*allocalte space on heap*/
 
     if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
-        printf("Error: There was an Error reading the file %s\n", valueBis);
+        printf("Error: There was an Error reading the file %s\n", certPath);
         exit(1);
     }
 
