@@ -60,14 +60,17 @@ int openSocket(void) {
 
     // Send Hello message
     printf("Message : %s\n", HELLO_MSG);
+
+    printf("socket %d\n", sock);
+
     if (send(sock, HELLO_MSG, strlen(HELLO_MSG), 0) < 0) {
         puts("Send failed");
         return -1;
     }
 
-    receivedResponse(sock);
 
-    exit(0);
+
+    receivedResponse(sock);
 
     /*
      * @TODO: receive(ServerCert, Nonce, Sig(Nonce))
@@ -96,6 +99,7 @@ int sendCommand(int sock, char* message) {
 void receivedResponse(int sock) {
     char msg_received[MSG_SIZE];
     //Receive a reply from the server
+    //memset(msg_received, '\0',sizeof(msg_received));
     if (recv(sock, msg_received, MSG_SIZE, 0) < 0) {
         puts("recv failed");
         return;

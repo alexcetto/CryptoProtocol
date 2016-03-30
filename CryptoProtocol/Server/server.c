@@ -137,6 +137,8 @@ int acceptNewClient() {
         return 1;
     }
 
+    printf("socket %d\n", socket_desc);
+
     // Generate Nonce
     generateNonce(nonce);
     puts("Nonce ");
@@ -148,9 +150,6 @@ int acceptNewClient() {
     puts(signedNonce);
 
 
-    /**
-     * @TODO: Send(certificate, nonce, SIG(nonce)) - In progress
-     */
     // store cert in buffer
     printf("Storing cert into buffer...\n");
 
@@ -187,14 +186,15 @@ int acceptNewClient() {
     sprintf(buffer + strlen(buffer), delimiter);
     sprintf(buffer + strlen(buffer), signedNonce);
 
-    puts(buffer);
-    printf("strlen(buffer) %d\n", strlen(buffer));
-    printf("buffSize %d\n", buffSize);
-    if (send(socket_desc, buffer, buffSize, 0) < 0) {
+
+    // Send "cert,nonce,sig(nonce)"
+    printf("socket %d\n", socket_desc);
+    int err;
+    if ((err = send(client_sock, buffer, strlen(buffer), 0)) < 0) {
+        printf("err : %d\n", err);
         puts("Send failed");
         return -1;
     }
-
 
     free(buffer);
 
