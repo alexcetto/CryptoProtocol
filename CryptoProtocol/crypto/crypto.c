@@ -173,10 +173,26 @@ unsigned char* sign(unsigned char* nonce) {
     FILE* privkeyFile;
     RSA* pubkey = NULL;
     RSA* privkey = NULL;
+    const char * name = "HOME";
+    char * value;
+    char * finalPathPublic;
+    char * finalPathPrivate;
+
+
+    value = getenv(name); // look for the user's directory
+
+    if(value == NULL) {
+        printf("Connais pas $HOME");
+        exit(EXIT_FAILURE);
+    }
+
+    finalPathPublic = strcat(value, "/CryptoProtocol/cert/public.pem");
+    finalPathPrivate = strcat(value, "/CryptoProtocol/cert/private.pem");
+
 
     OpenSSL_add_all_algorithms();
-    pubkeyFile = fopen("/Users/josetarsitano/Documents/Work/Development/CLion/CryptoProtocol/CryptoProtocol/Client/cert/public.pem", "r");
-    privkeyFile = fopen("/Users/josetarsitano/Documents/Work/Development/CLion/CryptoProtocol/CryptoProtocol/Client/cert/private.pem", "r");
+    pubkeyFile = fopen((const char*)finalPathPublic, "r");
+    privkeyFile = fopen((const char*)finalPathPrivate, "r");
 
     // Lecture de la cle publique RSA.
     if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
