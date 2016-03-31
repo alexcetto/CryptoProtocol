@@ -93,7 +93,7 @@ unsigned char* cryptWithPublicKey(unsigned char* packet);
  * @param [unsigned char*] nonce nonce,
  * @return 0, succes.
  */
-int generateNonce(unsigned char* nonce);
+int generateNonce(char* nonce);
 /** Signe le nonce avec cle privee RSA.
  @param  [unsigned char*] nonce     nonce,
  @return  [unsigned char*] signature signature.

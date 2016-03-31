@@ -7,7 +7,8 @@ include_directories("/usr/local/opt/openssl/include")
 link_directories("/usr/local/opt/openssl/lib")
 
 set(SOURCE_FILES_CLIENT
-        CryptoProtocol/Client/client.c)
+        CryptoProtocol/Client/client.c
+        CryptoProtocol/crypto/crypto.c)
 set(SOURCE_FILES_SERVER
         CryptoProtocol/crypto/crypto.c
         CryptoProtocol/crypto/crypto.h
@@ -27,3 +28,6 @@ add_executable(CryptoProtocolServer ${SOURCE_FILES_SERVER})
 
 target_link_libraries(CryptoProtocolServer "libcrypto.a")
 target_link_libraries(CryptoProtocolServer "libssl.a")
+
+target_link_libraries(CryptoProtocolClient "libcrypto.a")
+target_link_libraries(CryptoProtocolClient "libssl.a")

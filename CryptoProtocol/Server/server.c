@@ -112,7 +112,7 @@ int acceptNewClient() {
     size_t certSize; /* filesize */
     size_t buffSize;
     unsigned char* buffer; /*buffer will contain cert, nonce, SIG(nonce) */
-    unsigned char nonce[4];
+    char nonce[4];
     unsigned char* signedNonce;
     char* certPath = getPath("cert");
 
@@ -142,14 +142,13 @@ int acceptNewClient() {
 
     // Generate Nonce
     generateNonce(nonce);
-    puts("Nonce ");
+
+    puts("Nonce:");
+    printHex(nonce, sizeof(nonce));
     puts(nonce);
 
     // Sign Nonce
     signedNonce = sign(nonce);
-    puts("Signed nonce : ");
-    printBytes(signedNonce, 512);
-
 
     // store cert in buffer
     printf("Storing cert into buffer...\n");
@@ -172,6 +171,8 @@ int acceptNewClient() {
     }
 
     fclose(fp); // Close the certfile
+
+    printf("%d\n", strlen(buffer));
 
     // Append ",nonce,signedNonce" to buffer
     sprintf(buffer + strlen(buffer), nonce);
