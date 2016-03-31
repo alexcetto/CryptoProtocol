@@ -33,9 +33,10 @@
 
 #include <openssl/engine.h>
 
-#define BUFF_SIZE 1024
 
+/***************************************************************************************/
 /********************************** UTILS FUNCTIONS ************************************/
+/***************************************************************************************/
 /* Passphrase */
 unsigned char passPhrase[AES_BLOCK_SIZE];
 
@@ -58,12 +59,58 @@ char* getPath(char* keyType);
  **/
 void printHex(unsigned char* buff, size_t len);
 /***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
 
-/******************************* GENERATION KEY SESSION ********************************/
+/***************************************************************************************/
+/*********************************** CLIENT FUNCTIONS **********************************/
+/***************************************************************************************/
+/** Verifie la signature avec cle publique RSA.
+ @param  [unsigned char*] nonce     nonce,
+ @param  [unsigned char*] signature signature.
+ @return [int] 1 succes.
+ **/
+int checkSign(unsigned char* nonce, unsigned char* signature);
+
 /**
  * Generation de la cle de session.
  */
 void generateSessionKey();
+
+/** Chiffre un paquet avec cle publique RSA.
+ * @param  [unsigned char*] packet paquet,
+ * @return [unsigned char*] chaine de caracteres chiffree.
+ */
+unsigned char* cryptWithPublicKey(unsigned char* packet);
+/***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
+
+/***************************************************************************************/
+/*********************************** SERVER FUNCTIONS **********************************/
+/***************************************************************************************/
+/** Generation d'un nonce.
+ * @param [unsigned char*] nonce nonce,
+ * @return 0, succes.
+ */
+int generateNonce(unsigned char* nonce);
+/** Signe le nonce avec cle privee RSA.
+ @param  [unsigned char*] nonce     nonce,
+ @return  [unsigned char*] signature signature.
+ **/
+unsigned char* sign(unsigned char* nonce);
+
+/** Dechiffre un paquet chiffre avec cle privee RSA.
+ * @param  [unsigned char*] encodedPacket paquet chiffre,
+ * @return [unsigned char*] chaine de caracteres dechiffree.
+ */
+unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket);
+/***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
+
+/***************************************************************************************/
+/*********************************** COMMUNE FUNCTIONS *********************************/
 /***************************************************************************************/
 
 /************************* AES_128_CTR GLOBALS AND STRUCT INIT *************************/
@@ -80,7 +127,6 @@ unsigned char iv[AES_BLOCK_SIZE];
 /***************************************************************************************/
 
 /************************** AES_128_CTR PROTOTYPES FUNCTIONS ***************************/
-
 /** Initialisation AES MODE.
  @param [struct ctr_state]     *state  structure pour initialisation du mode,
  @param [const unsigned char]  iv      vecteur d'initialisation des blocs.
@@ -102,7 +148,6 @@ char* encryptAES(char* plaintext);
 unsigned char* decryptAES(unsigned char* cipher);
 /***************************************************************************************/
 
-/********************* SHA_256_HASH GLOBALS AND PROTOTYPE FUNCTION *********************/
 /** Hachage d'un fichier avec SHA256.
  @param [unsigner char*]  md             hache,
  @param [char*]           filename       nom du fichier a hacher.
@@ -111,34 +156,8 @@ unsigned char* decryptAES(unsigned char* cipher);
 int SHA256_hach(void* input, unsigned long length, unsigned char* md);
 /***************************************************************************************/
 
-/** Generation d'un nonce.
- * @param [unsigned char*] nonce nonce,
- * @return 0, succes.
- */
-int generateNonce(unsigned char* nonce);
-/** Signe le nonce avec cle privee RSA.
- @param  [unsigned char*] nonce     nonce,
- @return  [unsigned char*] signature signature.
- **/
-unsigned char* sign(unsigned char* nonce);
-
-/** Verifie la signature avec cle publique RSA.
- @param  [unsigned char*] nonce     nonce,
- @param  [unsigned char*] signature signature.
- @return [int] 1 succes.
- **/
-int checkSign(unsigned char* nonce, unsigned char* signature);
-
-/** Chiffre un paquet avec cle publique RSA.
- * @param  [unsigned char*] packet paquet,
- * @return [unsigned char*] chaine de caracteres chiffree.
- */
-unsigned char* cryptWithPublicKey(unsigned char* packet);
-
-/** Dechiffre un paquet chiffre avec cle privee RSA.
- * @param  [unsigned char*] encodedPacket paquet chiffre,
- * @return [unsigned char*] chaine de caracteres dechiffree.
- */
-unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket);
+/***************************************************************************************/
+/***************************************************************************************/
+/***************************************************************************************/
 
 #endif /* crypto_h */

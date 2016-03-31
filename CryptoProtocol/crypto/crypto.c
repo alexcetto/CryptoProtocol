@@ -266,10 +266,10 @@ char* getPath(char* keyType) {
     char* value;
     char* finalPath;
 
-    value = getenv(name); // look for the user's directory
+    value = getenv(name);
 
     if (value == NULL) {
-        printf("Connais pas $HOME");
+        printf("$HOME inconnu");
         exit(EXIT_FAILURE);
     }
 
@@ -302,12 +302,14 @@ unsigned char* cryptWithPublicKey(unsigned char* packet) {
 
     int pktLen;
     unsigned char encrypt[1024];
-    /* encrypt */
+
+    /* Chiffrement */
     pktLen = RSA_public_encrypt(pktLen, packet, encrypt, pubkey,
                                     RSA_PKCS1_OAEP_PADDING);
-    /* print data */
-    printHex(encrypt, pktLen);
+
     printf("Encrypt length = %d\n", pktLen);
+
+    printf("crypt: %s\n", encrypt);
 
     return encrypt;
 }
@@ -321,6 +323,7 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     FILE* privkeyFile = fopen((const char*)privatePath, "r");
     RSA* privkey = NULL;
 
+    OpenSSL_add_all_algorithms();
     // Lecture de la cle privee RSA.
     if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Private Key File.\n");
@@ -329,20 +332,26 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     fclose(privkeyFile);
 
     int encPktLen;
+    printf("encodedPacket: %s\n", encodedPacket);
+
     unsigned char decrypt[1024];
 
-    /* decrypt */
-    encPktLen = RSA_private_decrypt(encPktLen, encodedPacket, decrypt, privkey,
-                                     RSA_PKCS1_OAEP_PADDING);
-    printHex(decrypt, encPktLen);
-    if (strlen(encodedPacket) != encPktLen) {
+    /* Dechiffrement */
+    encPktLen = RSA_private_decrypt(512, encodedPacket, decrypt, privkey,
+                                    RSA_PKCS1_OAEP_PADDING);
+
+    printf("encPktLen: %d\n", encPktLen);
+    if (strlen((const char*)encodedPacket) != encPktLen) {
         return 1;
     }
+
     for (int i = 0; i < encPktLen; i++) {
         if (encodedPacket[i] != decrypt[i]) {
             return 1;
         }
     }
+
+    printf("decrypt: %s\n", decrypt);
 
     return decrypt;
 }
