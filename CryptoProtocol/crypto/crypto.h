@@ -52,11 +52,11 @@ unsigned char* getPassPhrase();
  */
 char* getPath(char* keyType);
 
-/** Affichage buffer.
+/** Affichage buffer en Hexadecimal.
  @param [unsigned char*]  buff  buffer,
  @param [size_t]          len   taille du buffer.
  **/
-void printBytes(unsigned char* buff, size_t len);
+void printHex(unsigned char* buff, size_t len);
 /***************************************************************************************/
 
 /******************************* GENERATION KEY SESSION ********************************/
@@ -118,9 +118,16 @@ int SHA256_hach(void* input, unsigned long length, unsigned char* md);
 int generateNonce(unsigned char* nonce);
 /** Signe le nonce avec cle privee RSA.
  @param  [unsigned char*] nonce     nonce,
- @param  [unsigned char*] signature signature.
+ @return  [unsigned char*] signature signature.
  **/
-unsigned char * sign(unsigned char* nonce);
+unsigned char* sign(unsigned char* nonce);
+
+/** Verifie la signature avec cle publique RSA.
+ @param  [unsigned char*] nonce     nonce,
+ @param  [unsigned char*] signature signature.
+ @return [int] 1 succes.
+ **/
+int checkSign(unsigned char* nonce, unsigned char* signature);
 
 /** Chiffre un paquet avec cle publique RSA.
  * @param  [unsigned char*] packet paquet,
@@ -134,7 +141,4 @@ unsigned char* cryptWithPublicKey(unsigned char* packet);
  */
 unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket);
 
-void checkSign();
-
-void printHex(const char *title, const unsigned char *s, int len);
 #endif /* crypto_h */

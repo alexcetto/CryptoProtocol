@@ -142,7 +142,7 @@ int SHA256_hach(void* input, unsigned long length, unsigned char* md) {
     if(!SHA256_Final(md, &context))
         return -1;
 
-    printBytes(md, SHA256_DIGEST_LENGTH);
+    printHex(md, SHA256_DIGEST_LENGTH);
 
     return 0;
 }
@@ -151,7 +151,11 @@ int SHA256_hach(void* input, unsigned long length, unsigned char* md) {
 /***************************************************************************************/
 /***************************************************************************************/
 
-void printBytes(unsigned char* buff, size_t len) {
+/** Affichage buffer en Hexadecimal.
+ @param [unsigned char*]  buff  buffer,
+ @param [size_t]          len   taille du buffer.
+ **/
+void printHex(unsigned char* buff, size_t len) {
     for (int i = 0; i < len; i++) {
         printf("%02x", buff[i]);
         if (i % 16 == 15)
@@ -169,24 +173,12 @@ void printBytes(unsigned char* buff, size_t len) {
  @param  [unsigned char*] signature signature.
  **/
 unsigned char* sign(unsigned char* nonce) {
-    FILE* pubkeyFile;
     FILE* privkeyFile;
-    RSA* pubkey = NULL;
     RSA* privkey = NULL;
 
     OpenSSL_add_all_algorithms();
-    char* publicPath = getPath("public");
     char* privatePath = getPath("private");
-
-    pubkeyFile = fopen(publicPath, "r");
     privkeyFile = fopen(privatePath, "r");
-
-    // Lecture de la cle publique RSA.
-    if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
-        fprintf(stderr, "Error loading Public Key File.\n");
-        exit(1);
-    }
-    fclose(pubkeyFile);
 
     // Lecture de la cle privee RSA.
     if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
@@ -198,7 +190,7 @@ unsigned char* sign(unsigned char* nonce) {
     // Hashe
     unsigned char hash[SHA256_DIGEST_LENGTH];
     // Signature
-    unsigned char * signature = malloc(sizeof(unsigned char)*512);
+    unsigned char* signature = malloc(sizeof(unsigned char)*512);
     // Taille de la signature
     unsigned int signLen;
     int ret;
@@ -209,12 +201,8 @@ unsigned char* sign(unsigned char* nonce) {
     ret = RSA_sign(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, &signLen, privkey);
     printf("RSA_sign: %s\n", (ret == 1) ? "OK" : "NONOK");
 
-    /* Verification */
-    ret = RSA_verify(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, signLen, pubkey);
-    printf("RSA_Verify: %s\n", (ret == 1) ? "OK" : "NONOK");
+    printHex(signature, 512);
 
-
-    printBytes(signature, 512);
     return signature;
 }
 
@@ -236,7 +224,39 @@ int generateNonce(unsigned char* nonce) {
     return 0;
 }
 
-void checkSign();
+/** Verifie la signature avec la cle publique RSA.
+ @param  [unsigned char*] nonce     nonce,
+ @param  [unsigned char*] signature signature.
+ @return [int] 1 succes.
+ **/
+int checkSign(unsigned char* nonce, unsigned char* signature) {
+    FILE* pubkeyFile;
+    RSA* pubkey = NULL;
+
+    OpenSSL_add_all_algorithms();
+    char* publicPath = getPath("public");
+    pubkeyFile = fopen(publicPath, "r");
+
+    // Lecture de la cle publique RSA.
+    if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
+        fprintf(stderr, "Error loading Public Key File.\n");
+        exit(1);
+    }
+    fclose(pubkeyFile);
+
+    // Hashe
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    int ret;
+
+    SHA256(nonce, 4, hash);
+
+    /* Verification */
+    ret = RSA_verify(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, 512, pubkey);
+    printf("RSA_Verify: %s\n", (ret == 1) ? "OK" : "NONOK");
+
+    return ret;
+}
+
 /** Recuperation du chemin absolu.
  * @param  [char*] keyType type de la cle (public, private),
  * @return [char*] chemin absolu.
@@ -286,7 +306,7 @@ unsigned char* cryptWithPublicKey(unsigned char* packet) {
     pktLen = RSA_public_encrypt(pktLen, packet, encrypt, pubkey,
                                     RSA_PKCS1_OAEP_PADDING);
     /* print data */
-    printHex("ENCRYPT", encrypt, pktLen);
+    printHex(encrypt, pktLen);
     printf("Encrypt length = %d\n", pktLen);
 
     return encrypt;
@@ -314,7 +334,7 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     /* decrypt */
     encPktLen = RSA_private_decrypt(encPktLen, encodedPacket, decrypt, privkey,
                                      RSA_PKCS1_OAEP_PADDING);
-    printHex("DECRYPT", decrypt, encPktLen);
+    printHex(decrypt, encPktLen);
     if (strlen(encodedPacket) != encPktLen) {
         return 1;
     }
@@ -325,16 +345,4 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     }
 
     return decrypt;
-}
-
-void printHex(const char *title, const unsigned char *s, int len) {
-    int     n;
-    printf("%s:", title);
-    for (n = 0; n < len; ++n) {
-        if ((n % 16) == 0) {
-            printf("\n%04x", n);
-        }
-        printf(" %02x", s[n]);
-    }
-    printf("\n");
 }
