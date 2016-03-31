@@ -14,15 +14,22 @@
 
 #define MSG_SIZE 4096
 #define HELLO_MSG "Hello,1.0"
+#define SIG_SIZE 512
+#define CERT_SIZE 2358
+#define NONCE_SIZE 4
+#define PORT 8888
+#define SERVER_ADDR "127.0.0.1"
 
-//int sock;
 struct sockaddr_in server;
 
 char msg_received[MSG_SIZE];
+char * receivedCert;
+char * receivedNonce;
+char * receivedSigNonce;
 
 
 int openSocket(void);
 int sendCommand(int sock, char* message);
-void receivedResponse(int socket);
+int receivedResponse(int socket);
 
 #endif /* client_h */

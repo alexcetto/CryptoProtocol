@@ -201,8 +201,6 @@ unsigned char* sign(unsigned char* nonce) {
     ret = RSA_sign(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, &signLen, privkey);
     printf("RSA_sign: %s\n", (ret == 1) ? "OK" : "NONOK");
 
-    printHex(signature, 512);
-
     return signature;
 }
 
@@ -214,7 +212,7 @@ unsigned char* sign(unsigned char* nonce) {
  * @param [unsigned char*] nonce nonce,
  * @return 0, succes.
  */
-int generateNonce(unsigned char* nonce) {
+int generateNonce(char* nonce) {
     int rc = RAND_bytes(nonce, sizeof(nonce));
     unsigned long err = ERR_get_error();
 
@@ -355,3 +353,4 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
 
     return decrypt;
 }
+
