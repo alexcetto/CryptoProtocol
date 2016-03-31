@@ -69,11 +69,16 @@ int openSocket(void) {
     }
 
 
-
+    // receive(ServerCert, Nonce, Sig(Nonce))
     receivedResponse(sock);
 
+    puts("Received : ");
+    puts(msg_received);
+
+
+
+
     /*
-     * @TODO: receive(ServerCert, Nonce, Sig(Nonce))
      * @TODO: Verif cert received with known one
      * @TODO: Generate Session Key
      * @TODO: send(cypher(session Key, Nonce+1))
@@ -97,14 +102,12 @@ int sendCommand(int sock, char* message) {
 }
 
 void receivedResponse(int sock) {
-    char msg_received[MSG_SIZE];
     //Receive a reply from the server
-    //memset(msg_received, '\0',sizeof(msg_received));
+    bzero(msg_received, strlen(msg_received));
+
     if (recv(sock, msg_received, MSG_SIZE, 0) < 0) {
         puts("recv failed");
         return;
     }
-    puts("Received : ");
-    puts(msg_received);
     return;
 }

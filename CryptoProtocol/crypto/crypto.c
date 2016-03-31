@@ -168,7 +168,7 @@ void printBytes(unsigned char* buff, size_t len) {
  @param  [unsigned char*] nonce     nonce,
  @param  [unsigned char*] signature signature.
  **/
-void sign(unsigned char* nonce, unsigned char* signature) {
+unsigned char* sign(unsigned char* nonce) {
     FILE* pubkeyFile;
     FILE* privkeyFile;
     RSA* pubkey = NULL;
@@ -198,7 +198,7 @@ void sign(unsigned char* nonce, unsigned char* signature) {
     // Hashe
     unsigned char hash[SHA256_DIGEST_LENGTH];
     // Signature
-    signature = malloc(sizeof(unsigned char)*512);
+    unsigned char * signature = malloc(sizeof(unsigned char)*512);
     // Taille de la signature
     unsigned int signLen;
     int ret;
@@ -212,6 +212,10 @@ void sign(unsigned char* nonce, unsigned char* signature) {
     /* Verification */
     ret = RSA_verify(NID_sha256, hash, SHA256_DIGEST_LENGTH, signature, signLen, pubkey);
     printf("RSA_Verify: %s\n", (ret == 1) ? "OK" : "NONOK");
+
+
+    printBytes(signature, 512);
+    return signature;
 }
 
 /***************************************************************************************/

@@ -120,7 +120,7 @@ int generateNonce(unsigned char* nonce);
  @param  [unsigned char*] nonce     nonce,
  @param  [unsigned char*] signature signature.
  **/
-void sign(unsigned char* nonce, unsigned char* signature);
+unsigned char * sign(unsigned char* nonce);
 
 /** Chiffre un paquet avec cle publique RSA.
  * @param  [unsigned char*] packet paquet,
