@@ -329,17 +329,21 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     }
     fclose(privkeyFile);
 
-    int encPktLen;
+    int encPktLen = 512;
     printf("encodedPacket: %s\n", encodedPacket);
 
-    unsigned char decrypt[1024];
 
+    unsigned char decrypt[1024], crypt[1024];
+
+    /*for (int i = 0; i < 1024; ++i) {
+        crypt[i] = encodedPacket[i];
+    }*/
     /* Dechiffrement */
-    encPktLen = RSA_private_decrypt(512, encodedPacket, decrypt, privkey,
+    encPktLen = RSA_private_decrypt(encPktLen, crypt, decrypt, privkey,
                                     RSA_PKCS1_OAEP_PADDING);
 
     printf("encPktLen: %d\n", encPktLen);
-    if (strlen((const char*)encodedPacket) != encPktLen) {
+    /*if (strlen((const char*)encodedPacket) != encPktLen) {
         return 1;
     }
 
@@ -347,7 +351,7 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
         if (encodedPacket[i] != decrypt[i]) {
             return 1;
         }
-    }
+    }*/
 
     printf("decrypt: %s\n", decrypt);
 

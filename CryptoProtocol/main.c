@@ -36,14 +36,14 @@ int main(int argc, const char * argv[]) {
     generateNonce(n);
 
     /* Signature */
-    /*unsigned char* signedNonce;
+    unsigned char* signedNonce;
     signedNonce = sign(n);
-    checkSign(n, signedNonce);*/
+    checkSign(n, signedNonce);
 
     unsigned char* encoded = cryptWithPublicKey("poulpe");
     printf("encoded: %s\n", encoded);
-    unsigned char* unencoded = decryptWithPrivateKey(encoded);
-    printf("unencoded: %s\n", unencoded);
+    /*unsigned char* unencoded = decryptWithPrivateKey(encoded);
+    printf("unencoded: %s\n", unencoded);*/
 
     return 0;
 }
