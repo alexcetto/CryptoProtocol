@@ -31,12 +31,14 @@ int main(int argc, const char * argv[]) {
     //}
 
     // Nonce
-    unsigned char* n[4];
+    unsigned char n[4];
     /* Generation du nonce */
     generateNonce(n);
 
     /* Signature */
-    //sign(n);
+    /*unsigned char* signedNonce;
+    signedNonce = sign(n);
+    checkSign(n, signedNonce);*/
 
     unsigned char* encoded = cryptWithPublicKey("poulpe");
     printf("encoded: %s\n", encoded);

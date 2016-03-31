@@ -18,6 +18,8 @@
 //int sock;
 struct sockaddr_in server;
 
+char msg_received[MSG_SIZE];
+
 
 int openSocket(void);
 int sendCommand(int sock, char* message);

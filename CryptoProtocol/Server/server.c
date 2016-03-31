@@ -146,9 +146,9 @@ int acceptNewClient() {
     puts(nonce);
 
     // Sign Nonce
-    sign(nonce, signedNonce);
+    signedNonce = sign(nonce);
     puts("Signed nonce : ");
-    puts(signedNonce);
+    printBytes(signedNonce, 512);
 
 
     // store cert in buffer
@@ -163,7 +163,7 @@ int acceptNewClient() {
 
     certSize = (size_t) ftell(fp);         /*calc the certSize needed*/
     fseek(fp, 0, SEEK_SET);
-    buffSize = certSize + sizeof(delimiter) + sizeof(nonce) + sizeof(delimiter) + sizeof(signedNonce);
+    buffSize = certSize + sizeof(nonce) + sizeof(signedNonce);
     buffer = malloc(buffSize);  /*allocalte space on heap*/
 
     if (fread(buffer, sizeof(char), certSize, fp) != certSize) {
@@ -174,9 +174,7 @@ int acceptNewClient() {
     fclose(fp); // Close the certfile
 
     // Append ",nonce,signedNonce" to buffer
-    sprintf(buffer + strlen(buffer), delimiter);
     sprintf(buffer + strlen(buffer), nonce);
-    sprintf(buffer + strlen(buffer), delimiter);
     sprintf(buffer + strlen(buffer), signedNonce);
 
 
