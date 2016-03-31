@@ -30,6 +30,8 @@
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
 #include <openssl/rand.h>
+#include <openssl/x509.h>
+#include <openssl/x509_vfy.h>
 
 #include <openssl/engine.h>
 
@@ -82,6 +84,8 @@ void generateSessionKey();
  * @return [unsigned char*] chaine de caracteres chiffree.
  */
 unsigned char* cryptWithPublicKey(unsigned char* packet);
+
+int verifCert(char *buffcert);
 /***************************************************************************************/
 /***************************************************************************************/
 /***************************************************************************************/

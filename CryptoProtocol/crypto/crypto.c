@@ -354,3 +354,43 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     return decrypt;
 }
 
+
+int verifCert(char *buffcert) {
+    X509 *cert;
+    BIO *cbio;
+
+    cbio = BIO_new_mem_buf((void*)buffcert, -1);
+    cert = PEM_read_bio_X509(cbio, NULL, 0, NULL);
+
+    int ret;
+    X509 *received_cert = cert;
+    EVP_PKEY *received_pubkey = X509_get_pubkey(received_cert);
+    if (EVP_PKEY_type(received_pubkey->type) != EVP_PKEY_RSA)
+        exit(1);
+    ret = X509_verify(received_cert, received_pubkey);
+    if (ret <= 0)
+        exit(1);
+
+    // Compare received public key with expected one
+    char* pubKeyFile = getPath("public");
+    RSA* pubkey = NULL;
+    // Lecture de la cle publique RSA.
+    if (!PEM_read_RSA_PUBKEY(pubKeyFile, &pubkey, NULL, "cryptoprotocol")) {
+        fprintf(stderr, "Error loading Public Key File.\n");
+        return -1;
+    }
+    fclose(pubKeyFile);
+
+    RSA *expected_rsa_key = pubkey;
+    EVP_PKEY expected_pubkey = { 0 };
+    EVP_PKEY_assign_RSA(&expected_pubkey, expected_rsa_key);
+    EVP_PKEY_cmp(received_pubkey, &expected_pubkey);
+
+    if (ret == 1)
+        return 0; // identity verified!
+    else
+        return 1;
+
+
+}
+

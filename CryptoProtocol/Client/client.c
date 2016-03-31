@@ -121,7 +121,8 @@ int openSocket(void) {
     puts("Sig: ");
     puts(receivedSigNonce);
 
-
+    //@TODO: Debug verifyCert()
+    //printf("Cert : %d\n", verifCert(receivedCert));
 
 
 
