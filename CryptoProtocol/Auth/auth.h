@@ -7,7 +7,9 @@
 
 
 int checkUser(char* user, char* pass);
-int searchInDB(char *str);
+char * searchInDB(char *username);
+int checkPassword(char *, char *);
+char** str_split(char* a_str, const char a_delim);
 
 #define SALTME "CAKUHDFBAOZEFHUBLAEHFBDLAUHEFBALZHFEBALUEFVKAUHFDBAZEFHBA"
 

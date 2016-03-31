@@ -20,16 +20,16 @@
 #include <arpa/inet.h> //inet_addr
 #include <unistd.h>    //write
 #include <stdlib.h>
-#include "openssl/rand.h"
-#include "openssl/err.h"
 
 #include "server.h"
-#include "../Auth/auth.h"
 #include "../crypto/crypto.h"
 
 
 
-
+/*
+ * Start the TCP server and wait for a client to connect
+ * The server listen to the 8888 port, defined in the .h
+ */
 int main(int argc, char *argv[]) {
 
     openSocket();
@@ -54,11 +54,16 @@ int main(int argc, char *argv[]) {
         perror("recv failed");
     }
 
+    // Close properly the server socket, else may provoke errors
     close(socket_desc);
 
     return 0;
 }
 
+
+/*
+ * Open the TCP socket
+ */
 int openSocket() {
     int optval; // Flag value for setsockopt
 
@@ -81,7 +86,7 @@ int openSocket() {
     //Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(8888);
+    server.sin_port = htons(SERVER_PORT);
 
     //Bind
     if (bind(socket_desc, (struct sockaddr *) &server, sizeof(server)) < 0) {
@@ -97,6 +102,11 @@ int openSocket() {
     return 0;
 }
 
+
+/*
+ * Wait for a client to connect, negociate with the HELLO, version
+ * if good, sends the payload containing server certificate, nonce and signed nonce to authenticate
+ */
 int acceptNewClient() {
     FILE *fp; /* certificate */
     size_t certSize; /* filesize */
@@ -143,7 +153,6 @@ int acceptNewClient() {
 
     // store cert in buffer
     printf("Storing cert into buffer...\n");
-
     fp = fopen((const char*)certPath,"r");
     if (fp == NULL) {
         printf("Error: There was an Error opening the file %s \n", certPath);
@@ -162,7 +171,7 @@ int acceptNewClient() {
         exit(1);
     }
 
-    fclose(fp);
+    fclose(fp); // Close the certfile
 
     // Append ",nonce,signedNonce" to buffer
     sprintf(buffer + strlen(buffer), delimiter);

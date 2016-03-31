@@ -1,8 +1,6 @@
-//
-// Created by Olivier Marin on 29/03/2016.
-//
-
 #include <strings.h>
+#include <stdlib.h>
+#include <assert.h>
 #include "auth.h"
 #include "../Server/server.h"
 
@@ -17,41 +15,73 @@
  * else return error
  */
 int checkUser(char* user, char* pass) {
-    if (searchInDB(user) == 1) {
-        printf("c'est bon");
-        return 1;
+    char * testUser = searchInDB(user);
+    if (testUser != NULL) {
+        printf("Found in DB \n");
+        char ** hash = str_split(testUser, ':');
+        printf("found %s", hash[1]);
+        if (checkPassword(pass, hash[1]) == 1){
+            printf("Password is coherent");
+        }
+        else return 0;
     }
     else {
-        printf("pas dans la db");
+        printf("Not found in DB\n");
         return 0;
     }
 }
 
-int searchInDB(char *str) {
-    FILE *fp;
-    int line_num = 1;
-    int find_result = 0;
-    char temp[512];
-    char * fname = "/Users/alexandrecetto/CryptoProtocol/DB.txt";
-    short found = 0;
 
-    if((fp = fopen(fname, "r")) == NULL) {
-    	return(-1);
+/*
+ * Return the relative path of the DB, buggy for now, don't use it.
+ * The DB should be stored in $HOME/CryptoProtocol/DB.txt
+ */
+char* getPathOfDB(void) {
+    const char* name = "HOME";
+    char*       homepath;
+    char*       finalPath;
+
+    homepath = getenv(name); // look for the user's directory
+
+    if (homepath == NULL) {
+        printf("Connais pas $HOME");
+        exit(EXIT_FAILURE);
     }
 
-    while (fgets(temp, 512, fp) != NULL) {
-        if ((strstr(temp, str)) != NULL) {
-            printf("A match found on line: %d\n", line_num);
-            printf("\n%s\n", temp);
-            find_result++;
+    finalPath = malloc(200);
+
+    /* Reconstruction du chemin relatif. */
+    strcat(finalPath, homepath);
+    strcat(finalPath, "/CryptoProtocol/DB.txt");
+
+    return finalPath;
+}
+
+
+/*
+ * Get the username and the hash of the pwd with the username parameter in the DB
+ * Return the values found or NULL if nothing found
+ */
+char * searchInDB(char *username) {
+    FILE    *fp;
+    int     line_num = 1;
+    char    temp[512];
+    char*   fname = "/Users/alexandrecetto/CryptoProtocol/DB.txt"; // Fix for incorrect relative path
+    short   found = 0;
+
+    if((fp = fopen(fname, "r")) == NULL) {
+        printf("Error opening DB file\n");
+    	return NULL;
+    }
+
+    while (fgets(temp, 512, fp) != NULL && found != 1) {
+        if ((strstr(temp, username)) != NULL) {
             found = 1;
+            break;
         }
         line_num++;
     }
 
-    if (find_result == 0) {
-        printf("\nSorry, couldn't find a match.\n");
-    }
 
     //Close the file if still open.
     if (fp) {
@@ -59,7 +89,47 @@ int searchInDB(char *str) {
     }
 
     if(found == 1)
-        return 1;
+        return temp;
     else
-        return 0;
+        return NULL;
+}
+
+
+/*
+ * Take the password hash found in db and the clear password and compare it
+ * Return 0 if not coherent
+ * Return 1 else
+ */
+int checkPassword(char * password, char * hash){
+
+
+    return 1;
+}
+
+
+/*
+ * Split str with the a_delim
+ */
+char **str_split(char *a_str, const char a_delim) {
+    char *token;
+    char *string;
+    char *tofree;
+
+    string = strdup(a_str);
+    printf(a_str);
+
+    if (string != NULL) {
+
+        tofree = string;
+
+        while ((token = strsep(&string, a_delim)) != NULL) {
+            printf("%s\n", token);
+        }
+
+        free(tofree);
+    } else {
+        printf(string);
+    }
+
+    return NULL;
 }

@@ -14,6 +14,7 @@
 
 #define MSG_SIZE 4096
 #define MSG_HELLO "Hello,1.0"
+#define SERVER_PORT 8888
 
 int openSocket();
 int acceptNewClient();
