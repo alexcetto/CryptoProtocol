@@ -14,12 +14,12 @@ int main(int argc, const char * argv[]) {
     //setPassPhrase();
 
     /* Generation de la cle de session */
-    //generateSessionKey();
+    generateSessionKey();
 
     /* Chiffrement */
-    //char* cipher = encryptAES("KALASH");
+    char* cipher = encryptAES("KALASH");
     /* Dechiffrement */
-    //char* plaintext = decryptAES(cipher);
+    char* plaintext = decryptAES(cipher);
 
     // Hashe
     //unsigned char md[SHA256_DIGEST_LENGTH];

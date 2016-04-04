@@ -26,7 +26,7 @@ void setPassPhrase() {
     }
 
     for (int i = 0; i < AES_BLOCK_SIZE; i++)
-        passPhrase[i] = newPassPhrase[i];
+        passPhrase[i] = (unsigned char)newPassPhrase[i];
 
 }
 
@@ -90,13 +90,13 @@ char* encryptAES(char* plaintext) {
 
     if (!RAND_bytes(iv, AES_BLOCK_SIZE)) {
         fprintf(stderr, "Could not create random bytes.\n");
-        return -1;
+        return "err";
     }
     
     init_ctr(&state, iv); //Counter call
     
     // Chiffrement.
-    AES_ctr128_encrypt((unsigned char *) plaintext, cipher, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
+    AES_ctr128_encrypt((unsigned char *) plaintext, (unsigned char *)cipher, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
     printf("%s \n\n", cipher);
 
     return cipher;
@@ -106,7 +106,7 @@ char* encryptAES(char* plaintext) {
  @param  [char*]  cipher   chaine de caracteres a dechiffrer,
  @return [char*]  le texte dechiffre.
  **/
-unsigned char* decryptAES(unsigned char* cipher) {
+char* decryptAES(unsigned char* cipher) {
     char* plaintext[AES_BLOCK_SIZE];
     init_ctr(&state, iv); //Counter call
 
@@ -294,7 +294,7 @@ unsigned char* cryptWithPublicKey(unsigned char* packet) {
     // Lecture de la cle publique RSA.
     if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Public Key File.\n");
-        return -1;
+        return "err";
     }
     fclose(pubkeyFile);
 
@@ -325,7 +325,7 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket) {
     // Lecture de la cle privee RSA.
     if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Private Key File.\n");
-        return -1;
+        return "err";
     }
     fclose(privkeyFile);
 

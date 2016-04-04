@@ -138,23 +138,22 @@ unsigned char iv[AES_BLOCK_SIZE];
 void init_ctr(struct ctr_state *state, const unsigned char iv[AES_BLOCK_SIZE]);
 
 /** Chiffrement d'un fichier avec algorithme AES 128bits CTR.
- @param [char*]  read   fichier a chiffrer,
- @param [char*]  write  fichier de sortie chiffre,
- @return [int] statut 0 succes, -1 erreur.
+ @param  [char*]  plaintext   chaine de caracteres a chiffrer,
+ @return [char*]  le texte chiffre.
  **/
 char* encryptAES(char* plaintext);
 
 /** Dechiffrement d'un fichier avec algorithme AES 128bits CTR.
- @param [char*]  read   fichier a chiffrer,
- @param [char*]  write  fichier de sortie chiffre,
- @return [int] statut 0 succes, -1 erreur.
+ @param  [char*]  cipher   chaine de caracteres a dechiffrer,
+ @return [char*]  le texte dechiffre.
  **/
-unsigned char* decryptAES(unsigned char* cipher);
+char* decryptAES(unsigned char* cipher);
 /***************************************************************************************/
 
 /** Hachage d'un fichier avec SHA256.
- @param [unsigner char*]  md             hache,
- @param [char*]           filename       nom du fichier a hacher.
+ @param [void*]           input  message a hacher,
+ @param [unsigned long]   length taille du message,
+ @param [unsigned char*]  message hache,
  @return [int] statut 0 succes, -1 erreur.
  **/
 int SHA256_hach(void* input, unsigned long length, unsigned char* md);
