@@ -16,9 +16,9 @@ int main(int argc, const char * argv[]) {
     /* Generation de la cle de session */
     generateSessionKey();
 
-    /* Chiffrement */
+    /* Chiffrement AES */
     char* cipher = encryptAES("KALASH");
-    /* Dechiffrement */
+    /* Dechiffrement AES */
     char* plaintext = decryptAES(cipher);
 
     // Hashe
@@ -40,10 +40,19 @@ int main(int argc, const char * argv[]) {
     signedNonce = sign(n);
     checkSign(n, signedNonce);
 
-    unsigned char* encoded = cryptWithPublicKey("poulpe");
-    printf("encoded: %s\n", encoded);
-    /*unsigned char* unencoded = decryptWithPrivateKey(encoded);
-    printf("unencoded: %s\n", unencoded);*/
+    int encLen;
+
+    /* Chiffrement RSA */
+    unsigned char* encoded = cryptWithPublicKey((unsigned char*)"poulpe", &encLen);
+
+    /* Dechiffrement RSA */
+    unsigned char* unencoded = decryptWithPrivateKey(encoded, encLen);
+
+    size_t uncLen = strlen((const char*)"poulpe");
+    /* Print */
+    for (int i = 0; i < uncLen; ++i) {
+        printf("%c", unencoded[i]);
+    }
 
     return 0;
 }

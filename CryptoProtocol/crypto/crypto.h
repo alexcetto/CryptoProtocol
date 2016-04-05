@@ -52,7 +52,7 @@ unsigned char* getPassPhrase();
 /** Recuperation du chemin absolu.
  * @param  [char*] keyType type de la cle (public, private),
  * @return [char*] chemin absolu.
- */
+ **/
 char* getPath(char* keyType);
 
 /** Affichage buffer en Hexadecimal.
@@ -76,14 +76,15 @@ int checkSign(unsigned char* nonce, unsigned char* signature);
 
 /**
  * Generation de la cle de session.
- */
+ **/
 void generateSessionKey();
 
 /** Chiffre un paquet avec cle publique RSA.
  * @param  [unsigned char*] packet paquet,
+ * @param            [int*] pktLen pointeur sur la taille du paquet,
  * @return [unsigned char*] chaine de caracteres chiffree.
- */
-unsigned char* cryptWithPublicKey(unsigned char* packet);
+ **/
+unsigned char* cryptWithPublicKey(unsigned char* packet, int* pktLen);
 
 int verifCert(char *buffcert);
 /***************************************************************************************/
@@ -96,7 +97,7 @@ int verifCert(char *buffcert);
 /** Generation d'un nonce.
  * @param [unsigned char*] nonce nonce,
  * @return 0, succes.
- */
+ **/
 int generateNonce(char* nonce);
 /** Signe le nonce avec cle privee RSA.
  @param  [unsigned char*] nonce     nonce,
@@ -106,9 +107,10 @@ unsigned char* sign(unsigned char* nonce);
 
 /** Dechiffre un paquet chiffre avec cle privee RSA.
  * @param  [unsigned char*] encodedPacket paquet chiffre,
+ * @param           [int] pktLen        taille du paquet chiffre,
  * @return [unsigned char*] chaine de caracteres dechiffree.
- */
-unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket);
+ **/
+unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket, int pktLen);
 /***************************************************************************************/
 /***************************************************************************************/
 /***************************************************************************************/
@@ -124,6 +126,7 @@ struct ctr_state {
     unsigned char ecount[AES_BLOCK_SIZE];
 } state;
 
+/* Cle de session */
 AES_KEY sessionKey;
 
 /* Vecteur d'initialisation */
@@ -153,7 +156,7 @@ char* decryptAES(unsigned char* cipher);
 /** Hachage d'un fichier avec SHA256.
  @param [void*]           input  message a hacher,
  @param [unsigned long]   length taille du message,
- @param [unsigned char*]  message hache,
+ @param [unsigned char*]  md     message hache,
  @return [int] statut 0 succes, -1 erreur.
  **/
 int SHA256_hach(void* input, unsigned long length, unsigned char* md);
