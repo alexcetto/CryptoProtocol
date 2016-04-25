@@ -77,14 +77,16 @@ int checkSign(unsigned char* nonce, unsigned char* signature);
 /**
  * Generation de la cle de session.
  **/
-void generateSessionKey();
+void generateSessionKey(AES_KEY*);
+
+void setSessionKey(AES_KEY session);
 
 /** Chiffre un paquet avec cle publique RSA.
  * @param  [unsigned char*] packet paquet,
  * @param            [int*] pktLen pointeur sur la taille du paquet,
  * @return [unsigned char*] chaine de caracteres chiffree.
  **/
-unsigned char* cryptWithPublicKey(unsigned char* packet, int* pktLen);
+int cryptWithPublicKey(unsigned char* packet, int* pktLen, unsigned char** encrypt);
 
 int verifCert(char *buffcert);
 /***************************************************************************************/
@@ -110,7 +112,7 @@ unsigned char* sign(unsigned char* nonce);
  * @param           [int] pktLen        taille du paquet chiffre,
  * @return [unsigned char*] chaine de caracteres dechiffree.
  **/
-unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket, int pktLen);
+int decryptWithPrivateKey(unsigned char* encodedPacket, int pktLen, unsigned char ** decrypt);
 /***************************************************************************************/
 /***************************************************************************************/
 /***************************************************************************************/
@@ -144,13 +146,13 @@ void init_ctr(struct ctr_state *state, const unsigned char iv[AES_BLOCK_SIZE]);
  @param  [char*]  plaintext   chaine de caracteres a chiffrer,
  @return [char*]  le texte chiffre.
  **/
-char* encryptAES(char* plaintext);
+int encryptAES(char* plaintext, unsigned char ** cipher);
 
 /** Dechiffrement d'un fichier avec algorithme AES 128bits CTR.
  @param  [char*]  cipher   chaine de caracteres a dechiffrer,
  @return [char*]  le texte dechiffre.
  **/
-char* decryptAES(unsigned char* cipher);
+int decryptAES(unsigned char* cipher, unsigned char ** plain);
 /***************************************************************************************/
 
 /** Hachage d'un fichier avec SHA256.

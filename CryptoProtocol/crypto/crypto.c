@@ -117,12 +117,17 @@ int checkSign(unsigned char* nonce, unsigned char* signature) {
 /**
  * Generation de la cle de session.
  **/
-void generateSessionKey() {
+void generateSessionKey(AES_KEY * session) {
     // Initialisation de la cle pour chiffrer.
-    if (AES_set_encrypt_key(passPhrase, 128, &sessionKey) < 0) {
+    if (AES_set_encrypt_key(passPhrase, 128, session) < 0) {
         fprintf(stderr, "Could not set encryption key.\n");
         exit(1);
     }
+    setSessionKey(*session);
+}
+
+void setSessionKey(AES_KEY session) {
+    sessionKey = session;
 }
 
 /** Chiffre un paquet avec cle publique RSA.
@@ -130,7 +135,7 @@ void generateSessionKey() {
  * @param            [int*] pktLen pointeur sur la taille du paquet,
  * @return [unsigned char*] chaine de caracteres chiffree.
  **/
-unsigned char* cryptWithPublicKey(unsigned char* packet, int* pktLen) {
+int cryptWithPublicKey(unsigned char* packet, int* pktLen, unsigned char** encrypt) {
     char* publicPath = getPath("public");
     FILE* pubkeyFile = fopen(publicPath, "r");
     RSA* pubkey = NULL;
@@ -138,7 +143,7 @@ unsigned char* cryptWithPublicKey(unsigned char* packet, int* pktLen) {
     // Lecture de la cle publique RSA.
     if (!PEM_read_RSA_PUBKEY(pubkeyFile, &pubkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Public Key File.\n");
-        return "err";
+        return -1;
     }
     fclose(pubkeyFile);
 
@@ -150,55 +155,100 @@ unsigned char* cryptWithPublicKey(unsigned char* packet, int* pktLen) {
     // Lecture de la cle privee RSA.
     if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Private Key File.\n");
-        return "err";
+        return -1;
     }
     fclose(privkeyFile);
 
-    unsigned char encrypt[512];
+    //unsigned char encrypt[512];
+    *encrypt = malloc(512* sizeof(unsigned char));
     size_t encPktLen = strlen((const char*)packet);
 
     /* Chiffrement */
-    *pktLen = RSA_public_encrypt((int)encPktLen, packet, encrypt, pubkey,
+    *pktLen = RSA_public_encrypt((int)encPktLen, packet, *encrypt, pubkey,
                                  RSA_PKCS1_OAEP_PADDING);
 
-    return encrypt;
+    return 1;
 }
 
 int verifCert(char *buffcert) {
-    X509 *cert;
-    BIO *cbio;
-
-    cbio = BIO_new_mem_buf((void*)buffcert, -1);
-    cert = PEM_read_bio_X509(cbio, NULL, 0, NULL);
-
+    BIO              *certbio = NULL;
+    BIO               *outbio = NULL;
+    X509          *error_cert = NULL;
+    X509                *cert = NULL;
+    X509_NAME    *certsubject = NULL;
+    X509_STORE         *store = NULL;
+    X509_STORE_CTX  *vrfy_ctx = NULL;
     int ret;
-    X509 *received_cert = cert;
-    EVP_PKEY *received_pubkey = X509_get_pubkey(received_cert);
-    if (EVP_PKEY_type(received_pubkey->type) != EVP_PKEY_RSA)
-        exit(1);
-    ret = X509_verify(received_cert, received_pubkey);
-    if (ret <= 0)
-        exit(1);
 
-    // Compare received public key with expected one
-    char* pubKeyFile = getPath("public");
-    RSA* pubkey = NULL;
-    // Lecture de la cle publique RSA.
-    if (!PEM_read_RSA_PUBKEY(pubKeyFile, &pubkey, NULL, "cryptoprotocol")) {
-        fprintf(stderr, "Error loading Public Key File.\n");
-        return -1;
+    /* ---------------------------------------------------------- *
+     * These function calls initialize openssl for correct work.  *
+     * ---------------------------------------------------------- */
+    OpenSSL_add_all_algorithms();
+    ERR_load_BIO_strings();
+    ERR_load_crypto_strings();
+
+    /* ---------------------------------------------------------- *
+     * Create the Input/Output BIO's.                             *
+     * ---------------------------------------------------------- */
+    certbio = BIO_new(BIO_s_file());
+    outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+    /* ---------------------------------------------------------- *
+     * Initialize the global certificate validation store object. *
+     * ---------------------------------------------------------- */
+    if (!(store=X509_STORE_new()))
+        BIO_printf(outbio, "Error creating X509_STORE_CTX object\n");
+
+    /* ---------------------------------------------------------- *
+     * Create the context structure for the validation operation. *
+     * ---------------------------------------------------------- */
+    vrfy_ctx = X509_STORE_CTX_new();
+
+    /* ---------------------------------------------------------- *
+     * Load the certificate and cacert chain from file (PEM).     *
+     * ---------------------------------------------------------- */
+    certbio = BIO_new_mem_buf((void*)buffcert, -1);
+    if (! (cert = PEM_read_bio_X509(certbio, NULL, 0, NULL))) {
+        BIO_printf(outbio, "Error loading cert into memory\n");
+        exit(-1);
     }
-    fclose(pubKeyFile);
 
-    RSA *expected_rsa_key = pubkey;
-    EVP_PKEY expected_pubkey = { 0 };
-    EVP_PKEY_assign_RSA(&expected_pubkey, expected_rsa_key);
-    EVP_PKEY_cmp(received_pubkey, &expected_pubkey);
+    ret = X509_STORE_load_locations(store, getPath("public"), NULL);
+    if (ret != 1)
+        BIO_printf(outbio, "Error loading CA cert or chain file\n");
 
-    if (ret == 1)
-        return 0; // identity verified!
-    else
-        return 1;
+    /* ---------------------------------------------------------- *
+     * Initialize the ctx structure for a verification operation: *
+     * Set the trusted cert store, the unvalidated cert, and any  *
+     * potential certs that could be needed (here we set it NULL) *
+     * ---------------------------------------------------------- */
+    X509_STORE_CTX_init(vrfy_ctx, store, cert, NULL);
+
+    /* ---------------------------------------------------------- *
+     * Check the complete cert chain can be build and validated.  *
+     * Returns 1 on success, 0 on verification failures, and -1   *
+     * for trouble with the ctx object (i.e. missing certificate) *
+     * ---------------------------------------------------------- */
+    ret = X509_verify_cert(vrfy_ctx);
+    BIO_printf(outbio, "Verification return code: %d\n", ret);
+
+    if(ret == 0 || ret == 1)
+        BIO_printf(outbio, "Verification result text: %s\n",
+                   X509_verify_cert_error_string(vrfy_ctx->error));
+
+    /* ---------------------------------------------------------- *
+     * Free up all structures                                     *
+     * ---------------------------------------------------------- */
+    X509_STORE_CTX_free(vrfy_ctx);
+    X509_STORE_free(store);
+    X509_free(cert);
+    BIO_free_all(certbio);
+    BIO_free_all(outbio);
+
+    // Issue because self signed cert
+    return 1;
+
+
 }
 /***************************************************************************************/
 /***************************************************************************************/
@@ -262,7 +312,7 @@ unsigned char* sign(unsigned char* nonce) {
  * @param           [int] pktLen        taille du paquet chiffre,
  * @return [unsigned char*] chaine de caracteres dechiffree.
  **/
-unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket, int pktLen) {
+int decryptWithPrivateKey(unsigned char* encodedPacket, int pktLen, unsigned char ** decrypt) {
     char* privatePath = getPath("private");
     FILE* privkeyFile = fopen((const char*)privatePath, "r");
     RSA* privkey = NULL;
@@ -271,25 +321,25 @@ unsigned char* decryptWithPrivateKey(unsigned char* encodedPacket, int pktLen) {
     // Lecture de la cle privee RSA.
     if (!PEM_read_RSAPrivateKey(privkeyFile, &privkey, NULL, "cryptoprotocol")) {
         fprintf(stderr, "Error loading Private Key File.\n");
-        return "err";
+        return 0;
     }
     fclose(privkeyFile);
 
     int decPktLen;
-    unsigned char decrypt[512];
+    *decrypt = malloc(512*sizeof(unsigned char));
 
     /* Dechiffrement */
-    decPktLen = RSA_private_decrypt(pktLen, encodedPacket, decrypt, privkey,
+    decPktLen = RSA_private_decrypt(pktLen, encodedPacket, *decrypt, privkey,
                                     RSA_PKCS1_OAEP_PADDING);
 
     for (int i = 0; i < decPktLen; i++) {
         if (encodedPacket[i] != decrypt[i]) {
-            return "Tailles differentes";
+            return 0;
         }
         //printf("%c", decrypt[i]);
     }
 
-    return decrypt;
+    return 1;
 }
 /***************************************************************************************/
 /***************************************************************************************/
@@ -319,34 +369,35 @@ void init_ctr(struct ctr_state *state, const unsigned char iv[AES_BLOCK_SIZE]) {
  @param  [char*]  plaintext   chaine de caracteres a chiffrer,
  @return [char*]  le texte chiffre.
  **/
-char* encryptAES(char* plaintext) {
-    char* cipher[AES_BLOCK_SIZE];
+int encryptAES(char* plaintext, unsigned char ** cipher) {
+    *cipher = malloc(AES_BLOCK_SIZE* sizeof(unsigned char));
 
     if (!RAND_bytes(iv, AES_BLOCK_SIZE)) {
         fprintf(stderr, "Could not create random bytes.\n");
-        return "err";
+        return 0;
     }
     
     init_ctr(&state, iv); //Counter call
     
     // Chiffrement.
-    AES_ctr128_encrypt((unsigned char *) plaintext, (unsigned char *)cipher, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
+    AES_ctr128_encrypt((unsigned char *) plaintext, *cipher, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
 
-    return cipher;
+    return 1;
 }
 
 /** Dechiffrement d'un fichier avec algorithme AES 128bits CTR.
  @param  [char*]  cipher   chaine de caracteres a dechiffrer,
  @return [char*]  le texte dechiffre.
  **/
-char* decryptAES(unsigned char* cipher) {
-    char* plaintext[AES_BLOCK_SIZE];
+int decryptAES(unsigned char* cipher, unsigned char ** plain) {
+    *plain = malloc(AES_BLOCK_SIZE* sizeof(unsigned char));
+
     init_ctr(&state, iv); //Counter call
 
     // Dechiffrement.
-    AES_ctr128_encrypt(cipher, (unsigned char *) plaintext, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
+    AES_ctr128_encrypt(cipher, *plain, AES_BLOCK_SIZE, &sessionKey, state.ivec, state.ecount, &state.num);
 
-    return plaintext;
+    return 1;
 }
 
 /** Hachage d'un fichier avec SHA256.

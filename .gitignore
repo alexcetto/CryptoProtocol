@@ -55,6 +55,8 @@ xcuserdata/
 *.i*86
 *.x86_64
 *.hex
+serverExe
+clientExe
 
 # Debug files
 *.dSYM/

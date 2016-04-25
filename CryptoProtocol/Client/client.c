@@ -31,7 +31,10 @@ int main(int argc, char *argv[]) {
         printf("Enter message : ");
         scanf("%s", message);
 
-        sendCommand(sock, message);
+        unsigned char * enc;
+        encryptAES(message, &enc);
+        puts(enc);
+        sendCommand(sock, (char*)enc);
 
         receivedResponse(sock);
     }
@@ -121,15 +124,26 @@ int openSocket(void) {
     puts("Sig: ");
     puts(receivedSigNonce);
 
-    //@TODO: Debug verifyCert()
-    //printf("Cert : %d\n", verifCert(receivedCert));
+    if(1 != verifCert(receivedCert))
+        return -1;
 
+    AES_KEY session;
+    setPassPhrase();
+    generateSessionKey(&session);
 
+    unsigned char *encrypt;
+    int encSize;
+    cryptWithPublicKey(receivedNonce+1, &encSize, &encrypt);
+
+    //packet = strcpy(packet, sessionKey);
+    if (send(sock, encrypt, encSize, 0) < 0) {
+        puts("Send failed");
+        return -1;
+    }
 
     /*
-     * @TODO: Verif cert received with known one
-     * @TODO: Generate Session Key
-     * @TODO: send(cypher(session Key, Nonce+1))
+     * @TODO: send(cipher(session Key, Nonce+1))
+     *
      * @TODO: send(user:pwd, Nonce+1)
      * @TODO: receive(Connection OK)
      */

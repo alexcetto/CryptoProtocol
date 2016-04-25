@@ -35,16 +35,17 @@ int main(int argc, char *argv[]) {
     openSocket();
     acceptNewClient();
     //Receive a message from client
-    /*while (1) {
+    while (1) {
         bzero(client_message, MSG_SIZE);
         read_size = recv(client_sock, client_message, MSG_SIZE, 0);
 
         puts("Received :");
         puts(client_message);
-
-        //Send the message back to client
-        write(client_sock, client_message, read_size);
-    }*/
+        unsigned char * decrypt;
+        decryptAES(client_message, &decrypt);
+        puts(decrypt);
+        puts(client_message);
+    }
 
     if (read_size == 0) {
         puts("Client disconnected");
@@ -143,10 +144,6 @@ int acceptNewClient() {
     // Generate Nonce
     generateNonce(nonce);
 
-    puts("Nonce:");
-    printHex(nonce, sizeof(nonce));
-    puts(nonce);
-
     // Sign Nonce
     signedNonce = sign(nonce);
 
@@ -172,8 +169,6 @@ int acceptNewClient() {
 
     fclose(fp); // Close the certfile
 
-    printf("%d\n", strlen(buffer));
-
     // Append ",nonce,signedNonce" to buffer
     sprintf(buffer + strlen(buffer), nonce);
     sprintf(buffer + strlen(buffer), signedNonce);
@@ -187,9 +182,17 @@ int acceptNewClient() {
 
     free(buffer);
 
+    bzero(client_message, MSG_SIZE);
+    read_size = (int) recv(client_sock, client_message, MSG_SIZE, 0);
+
+    unsigned char * noncePlus1;
+    decryptWithPrivateKey(client_message, strlen(client_message), &noncePlus1);
+
+
      /*
      * @TODO: Receive(C(SessionKey, Nonce+1))
      * @TODO: Uncypher with private RSA key Session Key & check Nonce
+      *
      * @TODO: Receive(user:pwd, Nonce+1)
      * @TODO: Uncypher with Session Key & check Nonce
      * @TODO: checkUser(user, pwd)
